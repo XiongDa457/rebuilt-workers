@@ -1,5 +1,5 @@
 import { EventStatus } from "@/nexus";
-import { getAnnouncement, getMatch, getPartsRequest, prepInsertAnnouncement, prepInsertMatch, prepInsertPartsRequest, prepInsertTeamToMatch } from "@/utils/db";
+import { getAnnouncement, getMatch, getPartsRequest, getTeam, prepInsertAnnouncement, prepInsertMatch, prepInsertPartsRequest, prepInsertTeam, prepInsertTeamToMatch } from "@/utils/db";
 import { env } from "cloudflare:workers";
 import { Context } from "hono";
 
@@ -36,8 +36,20 @@ export async function NexusWebhook(context: Context) {
       }))
     }
   }
-  const matches = eventStatus.matches
+  const matches = eventStatus.matches;
   if (matches) {
+    const teams = new Set<number>();
+    for (const match of matches) {
+      for (const team of match.redTeams) teams.add(parseInt(team));
+      for (const team of match.blueTeams) teams.add(parseInt(team));
+    }
+    for (const team of teams) {
+      const dbTeam = await getTeam(team);
+      if (dbTeam) continue;
+      upd.push(prepInsertTeam({
+        TeamNumber: team,
+      }));
+    }
     for (const match of matches) {
       const dbMatch = await getMatch(match.label);
       if (dbMatch) {
@@ -63,6 +75,6 @@ export async function NexusWebhook(context: Context) {
     }
   }
 
-  env.DB.batch(upd);
+  if (upd.length > 0) await env.DB.batch(upd);
   return context.text("OK");
 }

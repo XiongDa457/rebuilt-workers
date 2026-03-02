@@ -21,6 +21,7 @@ export const DBTeam = z.object({
   TeamNumber: PositiveInt,
   PitsData: PitsData.optional(),
 });
+export type DBTeam = z.infer<typeof DBTeam>;
 
 export const DBScouter = z.object({
   StudentNumber: PositiveInt,
