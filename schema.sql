@@ -23,8 +23,10 @@ DROP TABLE IF EXISTS Scouters;
 CREATE TABLE IF NOT EXISTS Scouters (
   StudentNumber INTEGER PRIMARY KEY,
   Name TEXT NOT NULL,
-  Token TEXT
+  Token TEXT,
+  TimeGenerated INTEGER
 );
+INSERT INTO Scouters (StudentNumber, Name) VALUES (0, "Not A Person");
 
 DROP TABLE IF EXISTS Matches;
 CREATE TABLE IF NOT EXISTS Matches (
@@ -39,7 +41,7 @@ CREATE TABLE IF NOT EXISTS TeamToMatch (
   Alliance TEXT NOT NULL,
   TeamIndex INTEGER NOT NULL,
   MatchData TEXT,
-  PRIMARY KEY (TeamNumber, MatchID),
+  PRIMARY KEY (MatchID, Alliance, TeamIndex),
   FOREIGN KEY (TeamNumber) REFERENCES Teams(TeamNumber),
   FOREIGN KEY (MatchID) REFERENCES Matches(MatchID)
 );
