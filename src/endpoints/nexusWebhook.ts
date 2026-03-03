@@ -85,12 +85,6 @@ export async function NexusWebhook(con: Context) {
               Alliance: alliance,
               TeamIndex: i,
             }));
-            upd.push(prepInsert("ScouterToMatch", {
-              StudentNumber: 0,
-              MatchID: match.label,
-              Alliance: alliance,
-              TeamIndex: i
-            }));
           }
         }
         insertAlliance("red", match.redTeams);

@@ -50,6 +50,19 @@ export async function getItem(table: DBTables, ...keys: any[]) {
   return tableRetType[table].parse(res.results[0]);
 }
 
+const getAllNotScoutedStmt = `
+SELECT * FROM TeamToMatch ttm
+LEFT JOIN ScouterToMatch stm
+  ON ttm.MatchID = stm.MatchID
+  AND ttm.Alliance = stm.Alliance
+  AND ttm.TeamIndex = stm.TeamIndex
+WHERE stm.MatchID IS NULL;
+`
+export async function getAllNotScouted() {
+  const res = await execSQL(getAllNotScoutedStmt);
+  return res.results.map(r => DBTeamToMatch.parse(r));
+}
+
 export function prepInsert<T extends DBTables>(table: T, item: TableItem<T>) {
   const vals = Object.values(item);
   return prepareSQL(`INSERT INTO ${table} (${Object.keys(item).join(", ")}) VALUES (${Array(vals.length).fill('?').join(", ")})`, ...vals);
@@ -68,4 +81,5 @@ export function prepUpdate<T extends DBTables>(table: T, item: TableItem<T>, key
   }
   return prepareSQL(`UPDATE ${table} SET ${upd.join(", ")} WHERE ${primaryKeysEqual(table)}`, ...queryKeys);
 }
+
 

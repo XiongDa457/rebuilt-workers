@@ -40,6 +40,7 @@ export const DBTeamToMatch = z.object({
   Alliance: Alliance,
   TeamIndex: TeamIndex,
   MatchData: z.ostring(),
+  ScoutedTime: PositiveInt.optional(),
 });
 
 export const DBScouterToMatch = z.object({
