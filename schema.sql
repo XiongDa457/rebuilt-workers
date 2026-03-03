@@ -21,16 +21,25 @@ CREATE TABLE IF NOT EXISTS PartsRequests (
   Parts TEXT
 );
 
-CREATE TABLE IF NOT EXISTS Teams (
-  TeamNumber INTEGER PRIMARY KEY,
-  PitsData TEXT
+CREATE TABLE IF NOT EXISTS Scouters (
+  StudentNumber INTEGER,
+  NameHash BLOB NOT NULL,
+  PRIMARY KEY (StudentNumber, NameHash)
 );
 
-CREATE TABLE IF NOT EXISTS Scouters (
-  StudentNumber INTEGER PRIMARY KEY,
-  Name TEXT NOT NULL,
-  Token TEXT,
-  TimeGenerated INTEGER
+CREATE TABLE IF NOT EXISTS ScouterSessions (
+  TokenHash BLOB PRIMARY KEY,
+  StudentNumber INTEGER NOT NULL,
+  ExpiresAt INTEGER NOT NULL,
+  FOREIGN KEY (StudentNumber) REFERENCES Scouters(StudentNumber)
+);
+
+CREATE TABLE IF NOT EXISTS Teams (
+  TeamNumber INTEGER PRIMARY KEY,
+  PitsByScouter INTEGER,
+  PitsData TEXT,
+  PitsDataTime INTEGER,
+  FOREIGN KEY (PitsByScouter) REFERENCES Scouters(StudentNumber)
 );
 
 CREATE TABLE IF NOT EXISTS Matches (
@@ -53,8 +62,8 @@ CREATE TABLE IF NOT EXISTS TeamToMatch (
 CREATE TABLE IF NOT EXISTS ScouterToMatch (
   StudentNumber INTEGER NOT NULL,
   MatchID TEXT NOT NULL,
-  Alliance TEXT,
-  TeamIndex INTEGER,
+  Alliance TEXT NOT NULL,
+  TeamIndex INTEGER NOT NULL,
   PRIMARY KEY (StudentNumber, MatchID),
   FOREIGN KEY (StudentNumber) REFERENCES Scouters(StudentNumber),
   FOREIGN KEY (MatchID) REFERENCES Matches(MatchID)

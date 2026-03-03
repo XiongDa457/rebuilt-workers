@@ -17,7 +17,7 @@ export async function NexusWebhook(con: Context) {
   const announcements = eventStatus.announcements;
   if (announcements) {
     for (const a of announcements) {
-      const dbAnnouncement = await getItem("Announcements", a.id);
+      const dbAnnouncement = await getItem("Announcements", { ID: a.id });
       if (dbAnnouncement) continue;
       upd.push(prepInsert("Announcements", {
         ID: a.id,
@@ -29,7 +29,7 @@ export async function NexusWebhook(con: Context) {
   const partsReqs = eventStatus.partsRequests;
   if (partsReqs) {
     for (const req of partsReqs) {
-      const dbPartsRequest = await getItem("PartsRequests", req.id);
+      const dbPartsRequest = await getItem("PartsRequests", { ID: req.id });
       if (dbPartsRequest) continue;
       upd.push(prepInsert("PartsRequests", {
         ID: req.id,
@@ -47,14 +47,14 @@ export async function NexusWebhook(con: Context) {
       for (const team of match.blueTeams) teams.add(parseInt(team));
     }
     for (const team of teams) {
-      const dbTeam = await getItem("Teams", team);
+      const dbTeam = await getItem("Teams", { TeamNumber: team });
       if (dbTeam) continue;
       upd.push(prepInsert("Teams", {
         TeamNumber: team,
       }));
     }
     for (const match of matches) {
-      const dbMatch = await getItem("Matches", match.label);
+      const dbMatch = await getItem("Matches", { MatchID: match.label });
       if (dbMatch) {
         upd.push(prepUpdate("Matches", {
           MatchID: match.label,

@@ -107,6 +107,7 @@ export const ScoutingSchedule = z.object({
 });
 
 export const ReqHeader = z.object({
-  token: z.string()
+  token: z.string(),
+  timeStamp: PositiveInt,
 })
 

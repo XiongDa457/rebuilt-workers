@@ -1,6 +1,7 @@
 import { fromHono } from "chanfana";
 import { Hono } from "hono";
 import { NexusWebhook } from "./endpoints/nexusWebhook";
+import { GetToken } from "./endpoints/getToken";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: Env }>();
@@ -9,6 +10,8 @@ const app = new Hono<{ Bindings: Env }>();
 const openapi = fromHono(app, {
   docs_url: "/",
 });
+
+openapi.post("/get-token", GetToken);
 
 app.post("/nexus-webhook", NexusWebhook);
 

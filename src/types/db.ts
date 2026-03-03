@@ -1,30 +1,35 @@
 import z from "zod";
-import { Alliance, MatchID, PositiveInt } from "./common";
-import { PitsData } from "./api";
+import { Alliance, MatchID, OPositiveInt, PositiveInt } from "./common";
 
 export const DBAnnoucenment = z.object({
   ID: z.string(),
-  Time: PositiveInt.optional(),
+  Time: OPositiveInt,
   Message: z.ostring(),
 });
 
 export const DBPartsRequest = z.object({
   ID: z.string(),
-  Time: PositiveInt.optional(),
-  Team: PositiveInt.optional(),
+  Time: OPositiveInt,
+  Team: OPositiveInt,
   Parts: z.ostring(),
 });
 
 export const DBTeam = z.object({
   TeamNumber: PositiveInt,
-  PitsData: PitsData.optional(),
+  PitsByScouter: OPositiveInt,
+  PitsData: z.ostring(),
+  PitsDataTime: OPositiveInt,
 });
 
 export const DBScouter = z.object({
   StudentNumber: PositiveInt,
-  Name: z.string(),
-  Token: z.ostring(),
-  TimeGenerated: PositiveInt,
+  NameHash: z.instanceof(ArrayBuffer),
+});
+
+export const DBScouterSession = z.object({
+  StudentNumber: PositiveInt,
+  TokenHash: z.instanceof(ArrayBuffer),
+  ExpiresAt: PositiveInt,
 });
 
 export const DBMatch = z.object({
@@ -40,7 +45,7 @@ export const DBTeamToMatch = z.object({
   Alliance: Alliance,
   TeamIndex: TeamIndex,
   MatchData: z.ostring(),
-  ScoutedTime: PositiveInt.optional(),
+  ScoutedTime: OPositiveInt,
 });
 
 export const DBScouterToMatch = z.object({
