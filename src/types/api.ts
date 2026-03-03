@@ -106,3 +106,7 @@ export const ScoutingSchedule = z.object({
   alliance: Alliance,
 });
 
+export const ReqHeader = z.object({
+  token: z.string()
+})
+

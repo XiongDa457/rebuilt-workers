@@ -1,22 +1,25 @@
 import { EventStatus } from "@/nexus";
-import { getAnnouncement, getMatch, getPartsRequest, getTeam, prepInsertAnnouncement, prepInsertMatch, prepInsertPartsRequest, prepInsertTeam, prepInsertTeamToMatch } from "@/utils/db";
+import { Alliance } from "@/types/common";
+import { getItem, prepInsert, prepUpdate } from "@/utils/db";
 import { env } from "cloudflare:workers";
 import { Context } from "hono";
 
-export async function NexusWebhook(context: Context) {
-  const nexusToken = context.req.header("Nexus-Token");
-  if (nexusToken !== env.NEXUS_TOKEN) return context.text("Incorrect Nexus-Token.");
+export async function NexusWebhook(con: Context) {
+  const nexusToken = con.req.header("Nexus-Token");
+  if (nexusToken !== env.NEXUS_TOKEN) return con.text("Incorrect Nexus-Token.");
 
-  const eventStatus: EventStatus = await context.req.json();
+  const eventStatus: EventStatus = await con.req.json();
+  env.KV.put("LastUpdate", eventStatus.dataAsOfTime.toString());
+  env.KV.put("NowQueuing", eventStatus.nowQueuing);
 
   const upd: D1PreparedStatement[] = []
 
   const announcements = eventStatus.announcements;
   if (announcements) {
     for (const a of announcements) {
-      const dbAnnouncement = await getAnnouncement(a.id);
+      const dbAnnouncement = await getItem("Announcements", a.id);
       if (dbAnnouncement) continue;
-      upd.push(prepInsertAnnouncement({
+      upd.push(prepInsert("Announcements", {
         ID: a.id,
         Time: a.postedTime,
         Message: a.announcement,
@@ -26,9 +29,9 @@ export async function NexusWebhook(context: Context) {
   const partsReqs = eventStatus.partsRequests;
   if (partsReqs) {
     for (const req of partsReqs) {
-      const dbPartsRequest = await getPartsRequest(req.id);
+      const dbPartsRequest = await getItem("PartsRequests", req.id);
       if (dbPartsRequest) continue;
-      upd.push(prepInsertPartsRequest({
+      upd.push(prepInsert("PartsRequests", {
         ID: req.id,
         Time: req.postedTime,
         Team: parseInt(req.requestedByTeam),
@@ -44,28 +47,49 @@ export async function NexusWebhook(context: Context) {
       for (const team of match.blueTeams) teams.add(parseInt(team));
     }
     for (const team of teams) {
-      const dbTeam = await getTeam(team);
+      const dbTeam = await getItem("Teams", team);
       if (dbTeam) continue;
-      upd.push(prepInsertTeam({
+      upd.push(prepInsert("Teams", {
         TeamNumber: team,
       }));
     }
     for (const match of matches) {
-      const dbMatch = await getMatch(match.label);
+      const dbMatch = await getItem("Matches", match.label);
       if (dbMatch) {
-
-      } else {
-        upd.push(prepInsertMatch({
+        upd.push(prepUpdate("Matches", {
           MatchID: match.label,
-          Times: JSON.stringify(match.times)
-        }));
-        function insertAlliance(alliance: "red" | "blue", teams: any[]) {
-          for (const [i, team] of teams.entries()) {
-            upd.push(prepInsertTeamToMatch({
+          Times: JSON.stringify(match.times),
+        }, "all"))
+        function updateAlliance(alliance: Alliance, teams: any[]) {
+          for (const [i, team] of teams) {
+            upd.push(prepUpdate("TeamToMatch", {
               TeamNumber: parseInt(team),
               MatchID: match.label,
               Alliance: alliance,
               TeamIndex: i,
+            }, ["TeamNumber"]));
+          }
+        }
+        updateAlliance("red", match.redTeams);
+        updateAlliance("blue", match.blueTeams);
+      } else {
+        upd.push(prepInsert("Matches", {
+          MatchID: match.label,
+          Times: JSON.stringify(match.times)
+        }));
+        function insertAlliance(alliance: Alliance, teams: any[]) {
+          for (const [i, team] of teams.entries()) {
+            upd.push(prepInsert("TeamToMatch", {
+              TeamNumber: parseInt(team),
+              MatchID: match.label,
+              Alliance: alliance,
+              TeamIndex: i,
+            }));
+            upd.push(prepInsert("ScouterToMatch", {
+              StudentNumber: 0,
+              MatchID: match.label,
+              Alliance: alliance,
+              TeamIndex: i
             }));
           }
         }
@@ -76,5 +100,5 @@ export async function NexusWebhook(context: Context) {
   }
 
   if (upd.length > 0) await env.DB.batch(upd);
-  return context.text("OK");
+  return con.text("OK");
 }
