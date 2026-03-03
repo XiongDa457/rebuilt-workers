@@ -1,3 +1,4 @@
+import { ScoutingSchedule } from "@/types/api";
 import { DBAnnoucenment, DBMatch, DBPartsRequest, DBScouter, DBTeam, DBScouterToMatch, DBTeamToMatch, DBScouterSession } from "@/types/db";
 import { env } from "cloudflare:workers";
 import z from "zod";
@@ -10,7 +11,7 @@ const tableQueryKeys = {
   Teams: ["TeamNumber"],
   Matches: ["MatchID"],
   Scouters: ["StudentNumber", "NameHash"],
-  ScouterSessions: ["TokenHash"],
+  ScouterSessions: ["StudentNumber", "TokenHash"],
   TeamToMatch: ["MatchID", "Alliance", "TeamIndex"],
   ScouterToMatch: ["StudentNumber", "MatchID"],
 }
@@ -47,11 +48,11 @@ async function execSQL(stmt: string | D1PreparedStatement, values: any[]) {
 }
 
 function where<T extends DBTables>(table: T, item: TableItem<T>): [string, any[]] {
-  const possibleQueryKeys = tableQueryKeys[table];
+  const possibleQueryKeys = Object.values(tableQueryKeys[table]);
   const queryKeys: string[] = [];
   const queryVals: any[] = [];
   for (const [key, val] of Object.entries(item)) {
-    if (key in possibleQueryKeys) {
+    if (possibleQueryKeys.includes(key)) {
       queryKeys.push(key);
       queryVals.push(val);
     }
@@ -67,7 +68,14 @@ export async function getItem<T extends DBTables>(table: T, item: TableItem<T>):
   return tableRetType[table].parse(res.results[0]);
 }
 
-const getAllNotScoutedStmt = `
+export async function getAll<T extends DBTables>(table: T, item: TableItem<T>): Promise<TableItem<T>[]> {
+  const [stmt, vals] = where(table, item);
+  const res = await execSQL(`SELECT * FROM ${table} ${stmt}`, vals);
+  const retType = tableRetType[table];
+  return res.results.map(r => retType.parse(r));
+}
+
+const getScheduleStmt = `
 SELECT * FROM TeamToMatch ttm
 LEFT JOIN ScouterToMatch stm
   ON ttm.MatchID = stm.MatchID
@@ -75,31 +83,74 @@ LEFT JOIN ScouterToMatch stm
   AND ttm.TeamIndex = stm.TeamIndex
 WHERE stm.MatchID IS NULL;
 `
-export async function getAllNotScouted() {
+export async function getSchedule(studentNumber: number): Promise<ScoutingSchedule> {
+  const res = await execSQL(getScheduleStmt, [studentNumber]);
+  return res.results.map((r: any) => {
+    return {
+      times: JSON.parse(r.Times),
+      matchID: r.MatchID,
+      teamNumber: r.TeamNumber,
+      alliance: r.Alliance
+    };
+  });
+}
+
+const getAllNotScoutedStmt = `
+SELECT m.Times, ttm.MatchID, ttm.TeamNumber, ttm.Alliance
+FROM TeamToMatch ttm
+LEFT JOIN ScouterToMatch stm
+  ON ttm.MatchID = stm.MatchID
+  AND ttm.Alliance = stm.Alliance
+  AND ttm.TeamIndex = stm.TeamIndex
+WHERE stm.StudentNumber IS NULL
+LEFT JOIN Matches m
+  ON ttm.MatchID = m.MatchID;
+`
+export async function getAllNotScouted(): Promise<ScoutingSchedule> {
   const res = await execSQL(getAllNotScoutedStmt, []);
-  return res.results.map(r => DBTeamToMatch.parse(r));
+  return res.results.map((r: any) => {
+    return {
+      times: JSON.parse(r.Times),
+      matchID: r.MatchID,
+      teamNumber: r.TeamNumber,
+      alliance: r.Alliance
+    };
+  });
 }
 
 export function prepInsert<T extends DBTables>(table: T, item: TableItem<T>) {
-  const vals = Object.values(item);
-  return prepareSQL(`INSERT INTO ${table} (${Object.keys(item).join(", ")}) VALUES (${Array(vals.length).fill('?').join(", ")})`, vals);
+  const keys: string[] = [];
+  const vals: any[] = [];
+  for (const [key, value] of Object.entries(item)) {
+    if (value === undefined) continue;
+    keys.push(key);
+    vals.push(value);
+  }
+  console.log(`INSERT INTO ${table} (${keys.join(", ")}) VALUES (${Array(vals.length).fill('?').join(", ")});`, vals);
+  return prepareSQL(`INSERT INTO ${table} (${keys.join(", ")}) VALUES (${Array(vals.length).fill('?').join(", ")});`, vals);
 }
 
 export function prepUpdate<T extends DBTables>(table: T, item: TableItem<T>, keys: string[] | "all", include: boolean = true) {
   const possibleQueryKeys = tableQueryKeys[table];
   const upd: string[] = [];
   for (const [key, val] of Object.entries(item)) {
-    const keyInKeys = keys === "all" || key in keys;
-    if (!(key in possibleQueryKeys) && include === keyInKeys) {
+    const keyInKeys = keys === "all" || keys.includes(key);
+    if (!(possibleQueryKeys.includes(key)) && include === keyInKeys) {
       upd.push(`${key} = ${JSON.stringify(val)}`);
     }
   }
   const [stmt, vals] = where(table, item);
-  return prepareSQL(`UPDATE ${table} SET ${upd.join(", ")} ${stmt}`, vals);
+  return prepareSQL(`UPDATE ${table} SET ${upd.join(", ")} ${stmt};`, vals);
+}
+
+export function prepDelete<T extends DBTables>(table: T, item: TableItem<T>) {
+  const [stmt, vals] = where(table, item);
+  return prepareSQL(`DELETE FROM ${table} ${stmt};`, vals);
 }
 
 type DBScouter = z.infer<typeof DBScouter>;
-export function updateScouterName(scouter: DBScouter) {
-  return prepareSQL(`UPDATE Scouters SET NameHash = ? WHERE StudentNumber = ?`, [scouter.NameHash, scouter.StudentNumber]);
+export async function updateScouterName(scouter: DBScouter) {
+  await prepDelete("ScouterSessions", { StudentNumber: scouter.StudentNumber }).run();
+  await execSQL(`UPDATE Scouters SET NameHash = ? WHERE StudentNumber = ?;`, [scouter.NameHash, scouter.StudentNumber]);
 }
 

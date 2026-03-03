@@ -1,8 +1,7 @@
-import { AppContext, LoginData } from "@/types/api";
+import { AppContext, LoginData, ReqHeader } from "@/types/api";
 import { generateToken, hashString } from "@/utils/api";
 import { getItem, prepInsert } from "@/utils/db";
 import { contentJson, OpenAPIRoute } from "chanfana";
-import z from "zod";
 
 const threeDays = 1000 * 60 * 60 * 24 * 3;
 export class GetToken extends OpenAPIRoute {
@@ -13,9 +12,7 @@ export class GetToken extends OpenAPIRoute {
     responses: {
       "200": {
         "description": "Login successful",
-        ...contentJson(z.object({
-          token: z.string()
-        }))
+        ...contentJson(ReqHeader)
       },
       "400": {
         "description": "Login failed",

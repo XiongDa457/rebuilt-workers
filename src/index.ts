@@ -12,8 +12,7 @@ const openapi = fromHono(app, {
 });
 
 openapi.post("/get-token", GetToken);
-
-app.post("/nexus-webhook", NexusWebhook);
+openapi.post("/nexus-webhook", NexusWebhook);
 
 // Export the Hono app
 export default app;

@@ -8,7 +8,8 @@
     "dev": "wrangler dev",
     "start": "wrangler dev",
     "cf-typegen": "wrangler types",
-    "update-d1-schema": "wrangler d1 execute rebuilt_db --remote --file=./schema.sql"
+    "update-d1-schema-local": "wrangler d1 execute rebuilt_db --local --file=./schema.sql",
+    "update-d1-schema-remote": "wrangler d1 execute rebuilt_db --remote --file=./schema.sql"
   },
   "dependencies": {
     "chanfana": "^2.6.3",

@@ -94,7 +94,7 @@ export const LoginData = z.object({
   name: z.string(),
 });
 
-export const ScoutingSchedule = z.object({
+export const ScoutingSchedule = z.array(z.object({
   times: z.object({
     queueTime: PositiveInt,
     onDeckTime: PositiveInt,
@@ -104,10 +104,20 @@ export const ScoutingSchedule = z.object({
   matchID: MatchID,
   teamNumber: PositiveInt,
   alliance: Alliance,
-});
+}));
+export type ScoutingSchedule = z.infer<typeof ScoutingSchedule>;
 
 export const ReqHeader = z.object({
   token: z.string(),
+})
+
+export const TimedReqHeader = z.object({
+  token: z.string(),
+  timeStamp: PositiveInt,
+})
+
+export const ResHeader = z.object({
+  nowQueuing: MatchID,
   timeStamp: PositiveInt,
 })
 
