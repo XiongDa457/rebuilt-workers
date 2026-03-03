@@ -118,6 +118,6 @@ export const TimedReqHeader = z.object({
 
 export const ResHeader = z.object({
   nowQueuing: MatchID,
-  timeStamp: PositiveInt,
+  lastUpdate: PositiveInt,
 })
 

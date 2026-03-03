@@ -76,15 +76,17 @@ export async function getAll<T extends DBTables>(table: T, item: TableItem<T>): 
 }
 
 const getScheduleStmt = `
-SELECT * FROM TeamToMatch ttm
+SELECT ttm.MatchID, ttm.Alliance, ttm.TeamNumber, m.Times
+FROM TeamToMatch ttm
 LEFT JOIN ScouterToMatch stm
   ON ttm.MatchID = stm.MatchID
   AND ttm.Alliance = stm.Alliance
   AND ttm.TeamIndex = stm.TeamIndex
-WHERE stm.MatchID IS NULL;
-`
-export async function getSchedule(studentNumber: number): Promise<ScoutingSchedule> {
-  const res = await execSQL(getScheduleStmt, [studentNumber]);
+LEFT JOIN Matches m
+  ON ttm.MatchID = m.MatchID
+WHERE stm.StudentNumber`
+
+function toSchedule(res: D1Result) {
   return res.results.map((r: any) => {
     return {
       times: JSON.parse(r.Times),
@@ -95,27 +97,14 @@ export async function getSchedule(studentNumber: number): Promise<ScoutingSchedu
   });
 }
 
-const getAllNotScoutedStmt = `
-SELECT m.Times, ttm.MatchID, ttm.TeamNumber, ttm.Alliance
-FROM TeamToMatch ttm
-LEFT JOIN ScouterToMatch stm
-  ON ttm.MatchID = stm.MatchID
-  AND ttm.Alliance = stm.Alliance
-  AND ttm.TeamIndex = stm.TeamIndex
-WHERE stm.StudentNumber IS NULL
-LEFT JOIN Matches m
-  ON ttm.MatchID = m.MatchID;
-`
-export async function getAllNotScouted(): Promise<ScoutingSchedule> {
-  const res = await execSQL(getAllNotScoutedStmt, []);
-  return res.results.map((r: any) => {
-    return {
-      times: JSON.parse(r.Times),
-      matchID: r.MatchID,
-      teamNumber: r.TeamNumber,
-      alliance: r.Alliance
-    };
-  });
+export async function getSchedule(studentNumber: number): Promise<ScoutingSchedule> {
+  const res = await execSQL(`${getScheduleStmt} = ?`, [studentNumber]);
+  return toSchedule(res);
+}
+
+export async function getNotScheduled(): Promise<ScoutingSchedule> {
+  const res = await execSQL(`${getScheduleStmt} IS NULL`, []);
+  return toSchedule(res);
 }
 
 export function prepInsert<T extends DBTables>(table: T, item: TableItem<T>) {

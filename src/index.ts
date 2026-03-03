@@ -2,6 +2,8 @@ import { fromHono } from "chanfana";
 import { Hono } from "hono";
 import { NexusWebhook } from "./endpoints/nexusWebhook";
 import { GetToken } from "./endpoints/getToken";
+import { GetSchedule } from "./endpoints/getSchedule";
+import { GetNotSchedule } from "./endpoints/getNotScheduled";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: Env }>();
@@ -11,6 +13,8 @@ const openapi = fromHono(app, {
   docs_url: "/",
 });
 
+openapi.post("/get-not-schedule", GetNotSchedule);
+openapi.post("/get-schedule", GetSchedule);
 openapi.post("/get-token", GetToken);
 openapi.post("/nexus-webhook", NexusWebhook);
 
