@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS Teams (
   ScoutedBy INTEGER,
   PitsData TEXT,
   PitsDataTime INTEGER,
-  FOREIGN KEY (PitsByScouter) REFERENCES Scouters(StudentNumber)
+  FOREIGN KEY (ScoutedBy) REFERENCES Scouters(StudentNumber)
 );
 CREATE INDEX ScoutedByIdx
 ON Teams (ScoutedBy);

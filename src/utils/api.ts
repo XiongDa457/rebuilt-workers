@@ -52,13 +52,13 @@ export function generateSchema<ReqH extends AnyZodObject, ReqB extends ZodTypeAn
   return {
     request: {
       ...(schemaGen.reqHeader !== undefined ? { headers: schemaGen.reqHeader } : {}),
-      ...(schemaGen.reqBody !== undefined ? { body: contentJson(schemaGen.reqHeader) } : {}),
+      ...(schemaGen.reqBody !== undefined ? { body: contentJson(schemaGen.reqBody) } : {}),
     },
     responses: {
       "200": {
         description: "Request approved",
         ...(schemaGen.resHeader !== undefined ? { headers: schemaGen.resHeader } : {}),
-        ...(schemaGen.reqBody !== undefined ? contentJson(schemaGen.resBody) : {}),
+        ...(schemaGen.resBody !== undefined ? contentJson(schemaGen.resBody) : {}),
       },
       "400": {
         description: "Invalid or expired token"
