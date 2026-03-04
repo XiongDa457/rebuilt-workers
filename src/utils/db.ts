@@ -57,6 +57,9 @@ export async function checkItem<T extends DBTables>(table: T, item: TableItem[T]
   const res = await execSQL(`SELECT 1 FROM ${table} ${stmt} LIMIT 1`, vals);
   return res.results.length > 0;
 }
+export async function checkScouter(studentNumber: number) {
+  return (await execSQL("SELECT 1 FROM Scouters WHERE StudentNumber = ?", [studentNumber])).results.length > 0;
+}
 
 export async function getItem<T extends DBTables>(table: T, item: TableItem[T]): Promise<TableItem[T]> {
   const [stmt, vals] = where(table, item);

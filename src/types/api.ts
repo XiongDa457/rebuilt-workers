@@ -6,7 +6,7 @@ export type AppContext = Context<{ Bindings: Env }>;
 const ClimbLevel = z.enum(["L1", "L2", "L3", "failed", "no-attemp"]);
 
 const Rating = z.number().int().min(1).max(5).optional();
-const PositiveInt = z.number().int().nonnegative();
+export const PositiveInt = z.number().int().nonnegative();
 
 const MatchID = z.string().regex(/(Practice|Qualifier) [0-9]*( Replay)?/);
 const Alliance = z.enum(["red", "blue"]);

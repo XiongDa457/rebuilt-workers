@@ -1,5 +1,5 @@
 import z from "zod";
-import { PositiveInt } from "./common";
+import { PositiveInt } from "./api";
 
 export const ScouterInfo = z.object({
   studentNumber: PositiveInt,
