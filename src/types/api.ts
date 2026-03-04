@@ -1,18 +1,22 @@
 import type { Context } from "hono";
 import { z } from "zod";
-import { Alliance, MatchID, PositiveInt } from "./common";
 
 export type AppContext = Context<{ Bindings: Env }>;
 
-const ClimbLevel = z.enum(["L1", "L2", "L3", "failed"]).optional();
+const ClimbLevel = z.enum(["L1", "L2", "L3", "failed", "no-attemp"]);
 
 const Rating = z.number().int().min(1).max(5).optional();
+const PositiveInt = z.number().int().nonnegative();
+
+const MatchID = z.string().regex(/(Practice|Qualifier) [0-9]*( Replay)?/);
+const Alliance = z.enum(["red", "blue"]);
+export type Alliance = z.infer<typeof Alliance>;
 
 const ClimbEvent = z.object({
   action: z.literal("climb"),
   time: PositiveInt,
   climbLevel: ClimbLevel,
-  climbFailReason: z.ostring(),
+  climbFailReason: z.string().optional(),
 });
 
 const MoveEvent = z.object({
@@ -32,7 +36,7 @@ const PreciseRoute = z.array(z.union([
 const ImpreciseRoute = z.object({
   routing: z.string(),
   climbLevel: ClimbLevel,
-  climbFailReason: z.ostring(),
+  climbFailReason: z.string().optional(),
   depotIntake: z.boolean(),
   neutralIntake: z.boolean(),
 });
@@ -59,7 +63,7 @@ const TeleopData = z.object({
 const EndgameData = z.object({
   scoring: Rating,
   climbLevel: ClimbLevel,
-  climbFailReason: z.ostring(),
+  climbFailReason: z.string().optional(),
 });
 
 const MatchComments = z.array(z.object({

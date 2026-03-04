@@ -1,6 +1,6 @@
-import { AnyZodObject, ZodTypeAny } from "zod";
+import { ZodType } from "zod";
 import { getItem, prepDelete } from "./db";
-import { contentJson } from "chanfana";
+import { AnyZodObject, UnauthorizedException } from "chanfana";
 
 export function generateToken() {
   const bytes = new Uint8Array(16);
@@ -18,23 +18,21 @@ export async function hashString(str: string): Promise<ArrayBuffer> {
   return crypto.subtle.digest("SHA-256", data);
 }
 
-type VerifyRet = "invalid" | number
+type VerifyRet = number
 export async function verifySession(token: string): Promise<VerifyRet> {
   const tokenHash = await hashString(token);
-  const session = await getItem("ScouterSessions", {
-    TokenHash: tokenHash,
-  });
-  if (!session) return "invalid";
+  const session = await getItem("ScouterSessions", { TokenHash: tokenHash });
+  if (!session) throw new UnauthorizedException("Invalid token");
 
   if (session.ExpiresAt < Date.now()) {
     await prepDelete("ScouterSessions", { TokenHash: tokenHash }).run();
-    return "invalid";
+    throw new UnauthorizedException("Expired Token");
   }
 
   return session.StudentNumber;
 }
 
-type SchemaGen<ReqH extends AnyZodObject, ReqB extends ZodTypeAny, ResH extends AnyZodObject, ResB extends ZodTypeAny> = {
+type SchemaGen<ReqH extends AnyZodObject, ReqB extends ZodType, ResH extends AnyZodObject, ResB extends ZodType> = {
   reqHeader?: ReqH,
   reqBody?: ReqB,
   resHeader?: ResH,
@@ -46,7 +44,17 @@ type SchemaGen<ReqH extends AnyZodObject, ReqB extends ZodTypeAny, ResH extends 
   }
 }
 
-export function generateSchema<ReqH extends AnyZodObject, ReqB extends ZodTypeAny, ResH extends AnyZodObject, ResB extends ZodTypeAny>(
+function contentJson<T>(schema: T) {
+  return {
+    content: {
+      "application/json": {
+        schema: schema
+      }
+    }
+  }
+}
+
+export function generateSchema<ReqH extends AnyZodObject, ReqB extends ZodType, ResH extends AnyZodObject, ResB extends ZodType>(
   schemaGen: SchemaGen<ReqH, ReqB, ResH, ResB>
 ) {
   return {
@@ -61,6 +69,9 @@ export function generateSchema<ReqH extends AnyZodObject, ReqB extends ZodTypeAn
         ...(schemaGen.resBody !== undefined ? contentJson(schemaGen.resBody) : {}),
       },
       "400": {
+        description: "Invalid request"
+      },
+      "401": {
         description: "Invalid or expired token"
       },
       ...schemaGen.extraResponses,

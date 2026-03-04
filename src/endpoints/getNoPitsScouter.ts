@@ -11,8 +11,7 @@ export class GetNoPitsScouter extends OpenAPIRoute {
 
   async handle(con: AppContext) {
     const data = await this.getValidatedData<typeof this.schema>();
-    const studentNumber = await verifySession(data.headers.token);
-    if (studentNumber === "invalid") return con.text("", 400);
+    await verifySession(data.headers.token);
     return con.json(await getNoPitsScouter());
   }
 }

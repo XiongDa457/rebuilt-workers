@@ -1,7 +1,7 @@
 import { EventStatus } from "@/nexus";
-import { Alliance } from "@/types/common";
+import { Alliance } from "@/types/api";
 import { generateSchema } from "@/utils/api";
-import { getItem, prepInsert, prepUpdate } from "@/utils/db";
+import { checkItem, isNull, prepInsert, prepUpdate } from "@/utils/db";
 import { OpenAPIRoute } from "chanfana";
 import { env } from "cloudflare:workers";
 import { Context } from "hono";
@@ -28,8 +28,7 @@ export class NexusWebhook extends OpenAPIRoute {
     const announcements = eventStatus.announcements;
     if (announcements) {
       for (const a of announcements) {
-        const dbAnnouncement = await getItem("Announcements", { ID: a.id });
-        if (dbAnnouncement) continue;
+        if (await checkItem("Announcements", { ID: a.id })) continue;
         upd.push(prepInsert("Announcements", {
           ID: a.id,
           Time: a.postedTime,
@@ -40,8 +39,7 @@ export class NexusWebhook extends OpenAPIRoute {
     const partsReqs = eventStatus.partsRequests;
     if (partsReqs) {
       for (const req of partsReqs) {
-        const dbPartsRequest = await getItem("PartsRequests", { ID: req.id });
-        if (dbPartsRequest) continue;
+        if (await checkItem("PartsRequests", { ID: req.id })) continue;
         upd.push(prepInsert("PartsRequests", {
           ID: req.id,
           Time: req.postedTime,
@@ -59,27 +57,25 @@ export class NexusWebhook extends OpenAPIRoute {
       }
       for (const team of teams) {
         if (!team) continue;
-        const dbTeam = await getItem("Teams", { TeamNumber: team });
-        if (dbTeam) continue;
+        if (await checkItem("Teams", { TeamNumber: team })) continue;
         upd.push(prepInsert("Teams", {
           TeamNumber: team,
         }));
       }
       for (const match of matches) {
-        const dbMatch = await getItem("Matches", { MatchID: match.label });
-        if (dbMatch) {
+        if (await checkItem("Matches", { MatchID: match.label })) {
           upd.push(prepUpdate("Matches", {
             MatchID: match.label,
             Times: JSON.stringify(match.times),
-          }, "all"))
+          }))
           function updateAlliance(alliance: Alliance, teams: any[]) {
-            for (const [i, team] of teams) {
+            for (const [i, team] of teams.entries()) {
               upd.push(prepUpdate("TeamToMatch", {
-                TeamNumber: team ? parseInt(team) : undefined,
+                TeamNumber: isNull(team) ? null : parseInt(team),
                 MatchID: match.label,
                 Alliance: alliance,
                 TeamIndex: i,
-              }, ["TeamNumber"]));
+              }));
             }
           }
           updateAlliance("red", match.redTeams);
@@ -92,7 +88,7 @@ export class NexusWebhook extends OpenAPIRoute {
           function insertAlliance(alliance: Alliance, teams: any[]) {
             for (const [i, team] of teams.entries()) {
               upd.push(prepInsert("TeamToMatch", {
-                TeamNumber: team ? parseInt(team) : undefined,
+                TeamNumber: isNull(team) ? null : parseInt(team),
                 MatchID: match.label,
                 Alliance: alliance,
                 TeamIndex: i,

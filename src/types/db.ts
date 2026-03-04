@@ -1,58 +1,55 @@
-import z from "zod";
-import { Alliance, MatchID, OPositiveInt, PositiveInt } from "./common";
+import { Alliance } from "./api";
 
-export const DBAnnoucenment = z.object({
-  ID: z.string(),
-  Time: OPositiveInt,
-  Message: z.ostring(),
-});
+export type DBAnnoucenment = {
+  ID: string,
+  Time?: number | null,
+  Message?: string | null,
+};
 
-export const DBPartsRequest = z.object({
-  ID: z.string(),
-  Time: OPositiveInt,
-  Team: OPositiveInt,
-  Parts: z.ostring(),
-});
+export type DBPartsRequest = {
+  ID: string,
+  Time?: number | null,
+  Team?: number | null,
+  Parts?: string | null,
+};
 
-export const DBTeam = z.object({
-  TeamNumber: PositiveInt,
-  ScoutedBy: OPositiveInt,
-  PitsData: z.ostring(),
-  PitsDataTime: OPositiveInt,
-});
+export type DBTeam = {
+  TeamNumber: number,
+  ScoutedBy?: number | null,
+  PitsData?: string | null,
+  PitsDataTime?: number | null,
+};
 
-export const DBScouter = z.object({
-  StudentNumber: PositiveInt,
-  NameHash: z.instanceof(ArrayBuffer),
-});
+export type DBScouter = {
+  StudentNumber: number,
+  NameHash: ArrayBuffer,
+};
 
-export const DBScouterSession = z.object({
-  StudentNumber: PositiveInt,
-  TokenHash: z.instanceof(ArrayBuffer),
-  ExpiresAt: PositiveInt,
-});
+export type DBScouterSession = {
+  StudentNumber?: number,
+  TokenHash: ArrayBuffer,
+  ExpiresAt?: number,
+};
 
-export const DBMatch = z.object({
-  MatchID: MatchID,
-  Times: z.ostring()
-});
+export type DBMatch = {
+  MatchID: string,
+  Times?: string | null
+};
 
-const TeamIndex = PositiveInt.min(0).max(2);
-
-export const DBTeamToMatch = z.object({
-  TeamNumber: PositiveInt,
-  MatchID: MatchID,
+export type DBTeamToMatch = {
+  TeamNumber?: number | null,
+  MatchID: string | null,
   Alliance: Alliance,
-  TeamIndex: TeamIndex,
-  MatchData: z.ostring(),
-  UserScoutedTime: OPositiveInt,
-  ServerScoutedTime: OPositiveInt,
-});
+  TeamIndex: number,
+  MatchData?: string | null,
+  UserScoutedTime?: number | null,
+  ServerScoutedTime?: number | null,
+};
 
-export const DBScouterToMatch = z.object({
-  StudentNumber: PositiveInt,
-  MatchID: MatchID,
-  Alliance: Alliance,
-  TeamIndex: TeamIndex,
-});
+export type DBScouterToMatch = {
+  StudentNumber: number,
+  MatchID: string,
+  Alliance?: Alliance,
+  TeamIndex?: number,
+};
 

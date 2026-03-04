@@ -1,7 +1,7 @@
 import { AppContext, LoginData, ReqHeader } from "@/types/api";
 import { generateSchema, generateToken, hashString } from "@/utils/api";
-import { getItem, prepInsert } from "@/utils/db";
-import { OpenAPIRoute } from "chanfana";
+import { checkItem, prepInsert } from "@/utils/db";
+import { InputValidationException, OpenAPIRoute } from "chanfana";
 
 const threeDays = 1000 * 60 * 60 * 24 * 3;
 export class GetToken extends OpenAPIRoute {
@@ -11,12 +11,12 @@ export class GetToken extends OpenAPIRoute {
   });
 
   async handle(con: AppContext) {
-    const data = (await this.getValidatedData<typeof this.schema>()).body;
-    const scouter = await getItem("Scouters", {
+    const data = (await this.getValidatedData()).body;
+
+    if (!await checkItem("Scouters", {
       StudentNumber: data.studentNumber,
-      NameHash: await hashString(data.name)
-    });
-    if (!scouter) return con.text("", 400);
+      NameHash: await hashString(data.name),
+    })) throw new InputValidationException("Invalid login data");
 
     const token = generateToken();
     prepInsert("ScouterSessions", {

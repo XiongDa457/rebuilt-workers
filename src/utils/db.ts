@@ -1,7 +1,10 @@
 import { ListOfTeams, ScoutingSchedule } from "@/types/api";
 import { DBAnnoucenment, DBMatch, DBPartsRequest, DBScouter, DBTeam, DBScouterToMatch, DBTeamToMatch, DBScouterSession } from "@/types/db";
 import { env } from "cloudflare:workers";
-import z from "zod";
+
+export function isNull(item: any) {
+  return item === undefined || item === null;
+}
 
 export type DBTables = "Announcements" | "PartsRequests" | "Teams" | "Scouters" | "ScouterSessions" | "Matches" | "TeamToMatch" | "ScouterToMatch";
 
@@ -16,7 +19,7 @@ const tableQueryKeys = {
   ScouterToMatch: ["StudentNumber", "MatchID"],
 }
 
-const tableRetType = {
+type TableItem = {
   Announcements: DBAnnoucenment,
   PartsRequests: DBPartsRequest,
   Teams: DBTeam,
@@ -27,27 +30,16 @@ const tableRetType = {
   ScouterToMatch: DBScouterToMatch,
 }
 
-type TableItem<T extends DBTables> = z.infer<typeof tableRetType[T]>;
-
-function stringify(val: any) {
-  if (val instanceof ArrayBuffer) return val;
-  return JSON.stringify(val);
-}
-
-function prepareSQL(sqlQuery: string, values: any[]): D1PreparedStatement {
-  return env.DB.prepare(sqlQuery).bind(...values.map(stringify));
-}
-
-function bindSQL(stmt: D1PreparedStatement, values: any[]): D1PreparedStatement {
-  return stmt.bind(...values.map(stringify));
+function prepareSQL(sqlQuery: string) {
+  return env.DB.prepare(sqlQuery);
 }
 
 async function execSQL(stmt: string | D1PreparedStatement, values: any[]) {
-  if (typeof stmt === "string") return prepareSQL(stmt, values).run();
-  else return bindSQL(stmt, values).run();
+  if (typeof stmt === "string") return prepareSQL(stmt).bind(...values).run();
+  else return stmt.bind(...values).run();
 }
 
-function where<T extends DBTables>(table: T, item: TableItem<T>): [string, any[]] {
+function where<T extends DBTables>(table: T, item: TableItem[T]): [string, any[]] {
   const possibleQueryKeys = Object.values(tableQueryKeys[table]);
   const queryKeys: string[] = [];
   const queryVals: any[] = [];
@@ -60,19 +52,24 @@ function where<T extends DBTables>(table: T, item: TableItem<T>): [string, any[]
   return [`WHERE ${queryKeys.map((key) => { return `${key} = ?` }).join(" AND ")}`, queryVals];
 }
 
-export async function getItem<T extends DBTables>(table: T, item: TableItem<T>): Promise<TableItem<T>> {
+export async function checkItem<T extends DBTables>(table: T, item: TableItem[T]): Promise<boolean> {
   const [stmt, vals] = where(table, item);
-  const res = await execSQL(`SELECT 1 FROM ${table} ${stmt}`, vals);
-  if (res.results.length === 0)
-    return undefined;
-  return tableRetType[table].parse(res.results[0]);
+  const res = await execSQL(`SELECT 1 FROM ${table} ${stmt} LIMIT 1`, vals);
+  return res.results.length > 0;
 }
 
-export async function getAll<T extends DBTables>(table: T, item: TableItem<T>): Promise<TableItem<T>[]> {
+export async function getItem<T extends DBTables>(table: T, item: TableItem[T]): Promise<TableItem[T]> {
+  const [stmt, vals] = where(table, item);
+  const res = await execSQL(`SELECT * FROM ${table} ${stmt} LIMIT 1`, vals);
+  if (res.results.length === 0)
+    return undefined;
+  return res.results[0] as any;
+}
+
+export async function getAll<T extends DBTables>(table: T, item: TableItem[T]): Promise<TableItem[T][]> {
   const [stmt, vals] = where(table, item);
   const res = await execSQL(`SELECT * FROM ${table} ${stmt}`, vals);
-  const retType = tableRetType[table];
-  return res.results.map(r => retType.parse(r));
+  return res.results.map((r: any) => r);
 }
 
 const getScheduleStmt = `
@@ -111,39 +108,35 @@ export async function getNoPitsScouter(): Promise<ListOfTeams> {
   return (await execSQL("SELECT TeamNumber FROM Teams WHERE ScoutedBy IS NULL", [])).results.map((r: any) => r.TeamNumber);
 }
 
-export function prepInsert<T extends DBTables>(table: T, item: TableItem<T>) {
+export function prepInsert<T extends DBTables>(table: T, item: TableItem[T]) {
   const keys: string[] = [];
   const vals: any[] = [];
-  for (const [key, value] of Object.entries(item)) {
-    if (value === undefined) continue;
+  for (const [key, val] of Object.entries(item)) {
+    if (isNull(val)) continue
     keys.push(key);
-    vals.push(value);
+    vals.push(val);
   }
-  console.log(`INSERT INTO ${table} (${keys.join(", ")}) VALUES (${Array(vals.length).fill('?').join(", ")});`, vals);
-  return prepareSQL(`INSERT INTO ${table} (${keys.join(", ")}) VALUES (${Array(vals.length).fill('?').join(", ")});`, vals);
+  return prepareSQL(`INSERT INTO ${table} (${keys.join(", ")}) VALUES (${Array(vals.length).fill('?').join(", ")});`).bind(...vals);
 }
 
-export function prepUpdate<T extends DBTables>(table: T, item: TableItem<T>, keys: string[] | "all", include: boolean = true) {
+export function prepUpdate<T extends DBTables>(table: T, item: TableItem[T]) {
   const possibleQueryKeys = tableQueryKeys[table];
   const upd: string[] = [];
+  const updVals: any[] = [];
   for (const [key, val] of Object.entries(item)) {
-    const keyInKeys = keys === "all" || keys.includes(key);
-    if (!(possibleQueryKeys.includes(key)) && include === keyInKeys) {
-      upd.push(`${key} = ${JSON.stringify(val)}`);
+    if (!(possibleQueryKeys.includes(key))) {
+      if (!isNull(val)) {
+        upd.push(`${key} = ?`);
+        updVals.push(val);
+      } else upd.push(`${key} = NULL`);
     }
   }
   const [stmt, vals] = where(table, item);
-  return prepareSQL(`UPDATE ${table} SET ${upd.join(", ")} ${stmt};`, vals);
+  return prepareSQL(`UPDATE ${table} SET ${upd.join(", ")} ${stmt};`).bind(...updVals, ...vals);
 }
 
-export function prepDelete<T extends DBTables>(table: T, item: TableItem<T>) {
+export function prepDelete<T extends DBTables>(table: T, item: TableItem[T]) {
   const [stmt, vals] = where(table, item);
-  return prepareSQL(`DELETE FROM ${table} ${stmt};`, vals);
-}
-
-type DBScouter = z.infer<typeof DBScouter>;
-export async function updateScouterName(scouter: DBScouter) {
-  await prepDelete("ScouterSessions", { StudentNumber: scouter.StudentNumber }).run();
-  await execSQL(`UPDATE Scouters SET NameHash = ? WHERE StudentNumber = ?;`, [scouter.NameHash, scouter.StudentNumber]);
+  return prepareSQL(`DELETE FROM ${table} ${stmt};`).bind(vals);
 }
 
