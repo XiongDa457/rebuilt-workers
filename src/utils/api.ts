@@ -1,4 +1,6 @@
+import { AnyZodObject, ZodTypeAny } from "zod";
 import { getItem, prepDelete } from "./db";
+import { contentJson } from "chanfana";
 
 export function generateToken() {
   const bytes = new Uint8Array(16);
@@ -31,3 +33,38 @@ export async function verifySession(token: string): Promise<VerifyRet> {
 
   return session.StudentNumber;
 }
+
+type SchemaGen<ReqH extends AnyZodObject, ReqB extends ZodTypeAny, ResH extends AnyZodObject, ResB extends ZodTypeAny> = {
+  reqHeader?: ReqH,
+  reqBody?: ReqB,
+  resHeader?: ResH,
+  resBody?: ResB,
+  extraResponses?: {
+    [status: string]: {
+      description: string
+    }
+  }
+}
+
+export function generateSchema<ReqH extends AnyZodObject, ReqB extends ZodTypeAny, ResH extends AnyZodObject, ResB extends ZodTypeAny>(
+  schemaGen: SchemaGen<ReqH, ReqB, ResH, ResB>
+) {
+  return {
+    request: {
+      ...(schemaGen.reqHeader !== undefined ? { headers: schemaGen.reqHeader } : {}),
+      ...(schemaGen.reqBody !== undefined ? { body: contentJson(schemaGen.reqHeader) } : {}),
+    },
+    responses: {
+      "200": {
+        description: "Request approved",
+        ...(schemaGen.resHeader !== undefined ? { headers: schemaGen.resHeader } : {}),
+        ...(schemaGen.reqBody !== undefined ? contentJson(schemaGen.resBody) : {}),
+      },
+      "400": {
+        description: "Invalid or expired token"
+      },
+      ...schemaGen.extraResponses,
+    }
+  };
+}
+

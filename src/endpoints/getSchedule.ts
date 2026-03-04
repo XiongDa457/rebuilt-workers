@@ -1,25 +1,14 @@
-import { AppContext, ReqHeader, ResHeader, ScoutingSchedule } from "@/types/api";
-import { verifySession } from "@/utils/api";
+import { AppContext, ReqHeader, ScoutingSchedule } from "@/types/api";
+import { generateSchema, verifySession } from "@/utils/api";
 import { getSchedule } from "@/utils/db";
-import { contentJson, OpenAPIRoute } from "chanfana";
+import { OpenAPIRoute } from "chanfana";
 import { env } from "cloudflare:workers";
 
 export class GetSchedule extends OpenAPIRoute {
-  schema = {
-    request: {
-      headers: ReqHeader
-    },
-    responses: {
-      "200": {
-        description: "Request approved",
-        headers: ResHeader,
-        ...contentJson(ScoutingSchedule),
-      },
-      "400": {
-        description: "Invalid or expired token"
-      }
-    }
-  };
+  schema = generateSchema({
+    reqHeader: ReqHeader,
+    resBody: ScoutingSchedule
+  });
 
   async handle(con: AppContext) {
     const data = await this.getValidatedData<typeof this.schema>();

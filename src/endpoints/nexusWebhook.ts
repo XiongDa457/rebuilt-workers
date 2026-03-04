@@ -1,25 +1,19 @@
 import { EventStatus } from "@/nexus";
 import { Alliance } from "@/types/common";
+import { generateSchema } from "@/utils/api";
 import { getItem, prepInsert, prepUpdate } from "@/utils/db";
-import { contentJson, OpenAPIRoute } from "chanfana";
+import { OpenAPIRoute } from "chanfana";
 import { env } from "cloudflare:workers";
 import { Context } from "hono";
 import z from "zod";
 
 export class NexusWebhook extends OpenAPIRoute {
-  schema = {
-    request: {
-      headers: z.object({
-        "Nexus-Token": z.string()
-      }),
-      body: contentJson(z.object({}))
-    },
-    responses: {
-      "200": {
-        "description": "",
-      }
-    }
-  };
+  schema = generateSchema({
+    reqHeader: z.object({
+      "Nexus-Token": z.string()
+    }),
+    reqBody: z.object({}),
+  });
 
   async handle(con: Context) {
     const nexusToken = con.req.header("Nexus-Token");

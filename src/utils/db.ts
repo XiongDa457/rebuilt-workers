@@ -1,4 +1,4 @@
-import { ScoutingSchedule } from "@/types/api";
+import { ListOfTeams, ScoutingSchedule } from "@/types/api";
 import { DBAnnoucenment, DBMatch, DBPartsRequest, DBScouter, DBTeam, DBScouterToMatch, DBTeamToMatch, DBScouterSession } from "@/types/db";
 import { env } from "cloudflare:workers";
 import z from "zod";
@@ -105,6 +105,10 @@ export async function getSchedule(studentNumber: number): Promise<ScoutingSchedu
 export async function getNotScheduled(): Promise<ScoutingSchedule> {
   const res = await execSQL(`${getScheduleStmt} IS NULL`, []);
   return toSchedule(res);
+}
+
+export async function getNoPitsScouter(): Promise<ListOfTeams> {
+  return (await execSQL("SELECT TeamNumber FROM Teams WHERE ScoutedBy IS NULL", [])).results.map((r: any) => r.TeamNumber);
 }
 
 export function prepInsert<T extends DBTables>(table: T, item: TableItem<T>) {

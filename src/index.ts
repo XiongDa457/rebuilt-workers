@@ -4,6 +4,7 @@ import { NexusWebhook } from "./endpoints/nexusWebhook";
 import { GetToken } from "./endpoints/getToken";
 import { GetSchedule } from "./endpoints/getSchedule";
 import { GetNotSchedule } from "./endpoints/getNotScheduled";
+import { GetNoPitsScouter } from "./endpoints/getNoPitsScouter";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: Env }>();
@@ -13,10 +14,12 @@ const openapi = fromHono(app, {
   docs_url: "/",
 });
 
-openapi.post("/get-not-schedule", GetNotSchedule);
-openapi.post("/get-schedule", GetSchedule);
-openapi.post("/get-token", GetToken);
 openapi.post("/nexus-webhook", NexusWebhook);
+openapi.post("/get-token", GetToken);
+
+openapi.post("/get-schedule", GetSchedule);
+openapi.post("/get-not-schedule", GetNotSchedule);
+openapi.post("/get-no-pits-scouter", GetNoPitsScouter);
 
 // Export the Hono app
 export default app;

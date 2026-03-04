@@ -16,7 +16,7 @@ export const DBPartsRequest = z.object({
 
 export const DBTeam = z.object({
   TeamNumber: PositiveInt,
-  PitsByScouter: OPositiveInt,
+  ScoutedBy: OPositiveInt,
   PitsData: z.ostring(),
   PitsDataTime: OPositiveInt,
 });
