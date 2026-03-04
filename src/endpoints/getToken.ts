@@ -19,11 +19,11 @@ export class GetToken extends OpenAPIRoute {
     })) throw new InputValidationException("Invalid login data");
 
     const token = generateToken();
-    prepInsert("ScouterSessions", {
+    await prepInsert("ScouterSessions", {
       StudentNumber: data.studentNumber,
       TokenHash: await hashString(token),
       ExpiresAt: Date.now() + threeDays,
-    })
+    }).run()
 
     return con.json({ token: token });
   }

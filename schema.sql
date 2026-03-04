@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS Scouters (
   NameHash BLOB NOT NULL
 );
 CREATE INDEX NameHashIdx
-ON Scouters (NameHashIdx);
+ON Scouters (NameHash);
 
 CREATE TABLE IF NOT EXISTS ScouterSessions (
   TokenHash BLOB PRIMARY KEY,

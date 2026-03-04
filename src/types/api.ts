@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export type AppContext = Context<{ Bindings: Env }>;
 
-const ClimbLevel = z.enum(["L1", "L2", "L3", "failed", "no-attemp"]);
+const ClimbLevel = z.enum(["L1", "L2", "L3", "failed", "no-attempt"]);
 
 const Rating = z.number().int().min(1).max(5).optional();
 export const PositiveInt = z.number().int().nonnegative();
@@ -26,7 +26,7 @@ const MoveEvent = z.object({
   posY: z.number(),
 });
 
-const PreciseRoute = z.array(z.union([
+const PreciseRoute = z.array(z.xor([
   z.object({
     action: z.enum(["shoot", "shoot-stop", "intake", "intake-stop"]),
     time: PositiveInt,
@@ -41,15 +41,18 @@ const ImpreciseRoute = z.object({
   neutralIntake: z.boolean(),
 });
 
-const AutonData = z.object({
-  usePrecise: z.literal(true),
-  startX: z.number(),
-  startY: z.number(),
-  preciseRoute: PreciseRoute,
-}).or(z.object({
-  usePrecise: z.literal(false),
-  impreciseRoute: ImpreciseRoute,
-}));
+const AutonData = z.xor([
+  z.object({
+    usePrecise: z.literal(true),
+    startX: z.number(),
+    startY: z.number(),
+    preciseRoute: PreciseRoute,
+  }),
+  z.object({
+    usePrecise: z.literal(false),
+    impreciseRoute: ImpreciseRoute,
+  })
+]);
 
 const TeleopData = z.object({
   movementSpeed: Rating,
@@ -78,7 +81,7 @@ export const MatchData = z.object({
   auton: AutonData,
   teleop: TeleopData,
   endgame: EndgameData,
-  penaltyPoints: z.number().int().nonnegative(),
+  penaltyPoints: PositiveInt,
   penaltyCard: z.enum(["yellow", "red"]).optional(),
   comments: MatchComments,
 });
@@ -89,7 +92,7 @@ export const PitsData = z.object({
   trench: z.boolean(),
   hopperCapacity: PositiveInt,
   shooterType: z.string(),
-  weight: z.number().nonnegative().optional(),
+  weight: PositiveInt.optional(),
   comments: z.string(),
 });
 

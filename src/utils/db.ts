@@ -103,7 +103,7 @@ export async function getSchedule(studentNumber: number): Promise<ScoutingSchedu
 }
 
 export async function getNotScheduled(): Promise<ScoutingSchedule> {
-  const res = await execSQL(`${getScheduleStmt} IS NULL`, []);
+  const res = await execSQL(`${getScheduleStmt} IS NULL AND ttm.TeamNumber IS NOT NULL`, []);
   return toSchedule(res);
 }
 
