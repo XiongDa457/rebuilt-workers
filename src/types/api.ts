@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export type AppContext = Context<{ Bindings: Env }>;
 
-const ClimbLevel = z.enum(["L1", "L2", "L3", "failed", "no-attempt"]);
+const ClimbLevel = z.enum(["L1", "L2", "L3", "failed"]);
 
 const Rating = z.number().int().min(1).max(5).optional();
 export const PositiveInt = z.number().int().nonnegative();
@@ -15,7 +15,8 @@ export type Alliance = z.infer<typeof Alliance>;
 const ClimbEvent = z.object({
   action: z.literal("climb"),
   time: PositiveInt,
-  climbLevel: ClimbLevel,
+  climbAttempted: z.boolean(),
+  climbSuccess: z.boolean().optional(),
   climbFailReason: z.string().optional(),
 });
 
@@ -26,64 +27,63 @@ const MoveEvent = z.object({
   posY: z.number(),
 });
 
-const PreciseRoute = z.array(z.xor([
+const Route = z.array(z.xor([
   z.object({
     action: z.enum(["shoot", "shoot-stop", "intake", "intake-stop"]),
     time: PositiveInt,
   }), ClimbEvent, MoveEvent
 ]));
 
-const ImpreciseRoute = z.object({
-  routing: z.string(),
-  climbLevel: ClimbLevel,
-  climbFailReason: z.string().optional(),
-  depotIntake: z.boolean(),
-  neutralIntake: z.boolean(),
-});
+const AutonData = z.object({
+  precisionLevel: Rating,
 
-const AutonData = z.xor([
-  z.object({
-    usePrecise: z.literal(true),
-    startX: z.number(),
-    startY: z.number(),
-    preciseRoute: PreciseRoute,
-  }),
-  z.object({
-    usePrecise: z.literal(false),
-    impreciseRoute: ImpreciseRoute,
-  })
-]);
+  startX: z.number(),
+  startY: z.number(),
+  route: Route,
+});
 
 const TeleopData = z.object({
+  roles: z.array(z.enum(["cycling", "scoring", "feeding", "defense", "immobile", "other"])),
+  rolesOther: z.string().optional(),
+
   movementSpeed: Rating,
   driverSkill: Rating,
+
+  cycling: Rating,
+
   scoringSpeed: Rating,
   scoringAccuracy: Rating,
-  defense: Rating,
+
   feeding: Rating,
-});
 
-const EndgameData = z.object({
-  scoring: Rating,
-  climbLevel: ClimbLevel,
-  climbFailReason: z.string().optional(),
-});
+  defense: Rating,
 
-const MatchComments = z.array(z.object({
-  category: z.enum(["scoring", "defense", "feeding", "climb", "malfunction", "penalties", "driver", "strategy", "other"]),
-  comment: z.string()
-}));
+  shootsWhileMoving: z.boolean(),
+});
 
 export const MatchData = z.object({
   matchID: MatchID,
   alliance: Alliance,
   team: PositiveInt,
+
   auton: AutonData,
   teleop: TeleopData,
-  endgame: EndgameData,
+
+  canTrench: z.boolean(),
+
+  attemptedClimb: z.boolean(),
+  climbLevel: ClimbLevel.optional(),
+  climbFailReason: z.string().optional(),
+
   penaltyPoints: PositiveInt,
-  penaltyCard: z.enum(["yellow", "red"]).optional(),
-  comments: MatchComments,
+  penaltyCard: z.enum(["none", "yellow", "red"]),
+
+  beached: z.boolean(),
+  beachedReason: z.enum(["on-fuel", "on-bump"]).optional(),
+  botBroke: z.boolean(),
+  brokenReason: z.string().optional(),
+
+  comments: z.string(),
 });
 
 export const PitsData = z.object({

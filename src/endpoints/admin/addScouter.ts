@@ -1,9 +1,9 @@
 import { ScouterInfo } from "@/types/admin";
 import { AppContext, ReqHeader } from "@/types/api";
+import { veryfyAdminToken } from "@/utils/admin";
 import { generateSchema, hashString } from "@/utils/api";
 import { checkScouter, prepInsert } from "@/utils/db";
-import { InputValidationException, OpenAPIRoute, UnauthorizedException } from "chanfana";
-import { env } from "cloudflare:workers";
+import { InputValidationException, OpenAPIRoute } from "chanfana";
 
 export class AddScouter extends OpenAPIRoute {
   schema = generateSchema({
@@ -18,7 +18,7 @@ export class AddScouter extends OpenAPIRoute {
 
   async handle(con: AppContext) {
     const data = await this.getValidatedData<typeof this.schema>();
-    if (data.headers.token !== env.ADMIN_TOKEN) throw new UnauthorizedException("Wrong admin token");
+    veryfyAdminToken(data.headers.token)
 
     const scouter = data.body;
     if (await checkScouter(scouter.studentNumber)) throw new InputValidationException("Student already exists");
