@@ -18,16 +18,15 @@ export async function hashString(str: string): Promise<ArrayBuffer> {
   return crypto.subtle.digest("SHA-256", data);
 }
 
-type VerifyRet = number
-export async function verifySession(token: string): Promise<VerifyRet> {
+export async function verifySession(token: string): Promise<number> {
   const tokenHash = await hashString(token);
   const session = await getItem("ScouterSessions", { TokenHash: tokenHash });
   if (!session) throw new UnauthorizedException("Invalid token");
 
-  if (session.ExpiresAt < Date.now()) {
-    await prepDelete("ScouterSessions", { TokenHash: tokenHash }).run();
-    throw new UnauthorizedException("Expired Token");
-  }
+  // if (session.ExpiresAt < Date.now()) {
+  //   await prepDelete("ScouterSessions", { TokenHash: tokenHash }).run();
+  //   throw new UnauthorizedException("Expired Token");
+  // }
 
   return session.StudentNumber;
 }

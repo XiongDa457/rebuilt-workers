@@ -14,7 +14,21 @@ const adminRoute = fromHono(admin)
   .post("/add-scouter", AddScouter)
 
 const app = new Hono<{ Bindings: Env }>();
-fromHono(app, { docs_url: "/" })
+fromHono(app, {
+  docs_url: "/",
+  schema: {
+    info: {
+      title: "Team 4308 rebuilt scouting app API",
+      version: "1.0.0"
+    },
+    servers: [
+      {
+        url: "https://rebuilt-workers.the-woodlands-robotics.workers.dev",
+        description: "cloudflare workers url",
+      }
+    ]
+  }
+})
   .post("/get-token", GetToken)
   .post("/nexus-webhook", NexusWebhook)
 
