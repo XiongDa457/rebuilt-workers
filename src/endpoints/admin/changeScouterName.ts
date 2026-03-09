@@ -1,7 +1,8 @@
-import { ScouterInfo } from "@/types/admin"; import { AppContext, ReqHeader } from "@/types/api";
+import { ScouterInfo } from "@/types/admin";
+import { AppContext, ReqHeader } from "@/types/api";
 import { veryfyAdminToken } from "@/utils/admin";
 import { generateSchema, hashString } from "@/utils/api";
-import { checkScouter, prepInsert } from "@/utils/db";
+import { checkScouter, updateScouter } from "@/utils/db";
 import { InputValidationException, OpenAPIRoute } from "chanfana";
 
 export class AddScouter extends OpenAPIRoute {
@@ -20,13 +21,13 @@ export class AddScouter extends OpenAPIRoute {
     veryfyAdminToken(data.headers.token)
 
     const scouter = data.body;
-    if (await checkScouter(scouter.studentNumber)) throw new InputValidationException("Scouter already exists");
+    if (!await checkScouter(scouter.studentNumber)) throw new InputValidationException("Scouter does not exists");
 
-    await prepInsert("Scouters", {
+    await updateScouter({
       StudentNumber: scouter.studentNumber,
       NameHash: await hashString(scouter.name)
-    }).run()
+    })
 
-    return con.text("")
+    return con.text("");
   }
 }

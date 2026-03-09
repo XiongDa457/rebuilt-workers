@@ -4,7 +4,7 @@ import { verifySession } from "@/utils/api";
 import { getNotScheduled } from "@/utils/db";
 import { OpenAPIRoute } from "chanfana";
 
-export class GetNotSchedule extends OpenAPIRoute {
+export class GetNotScheduled extends OpenAPIRoute {
   schema = generateSchema({
     reqHeader: ReqHeader,
     resBody: ScoutingSchedule

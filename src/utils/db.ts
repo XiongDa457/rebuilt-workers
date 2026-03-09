@@ -138,6 +138,10 @@ export function prepUpdate<T extends DBTables>(table: T, item: TableItem[T]) {
   return prepareSQL(`UPDATE ${table} SET ${upd.join(", ")} ${stmt};`).bind(...updVals, ...vals);
 }
 
+export async function updateScouter(scouter: DBScouter) {
+  await execSQL("UPDATE Scouters SET NameHahs = ? WHERE StudentNumber = ?", [scouter.NameHash, scouter.StudentNumber]);
+}
+
 export function prepDelete<T extends DBTables>(table: T, item: TableItem[T]) {
   const [stmt, vals] = where(table, item);
   return prepareSQL(`DELETE FROM ${table} ${stmt};`).bind(vals);

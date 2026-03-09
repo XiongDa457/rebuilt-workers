@@ -3,7 +3,7 @@ import { generateSchema, verifySession } from "@/utils/api";
 import { getNoPitsScouter } from "@/utils/db";
 import { OpenAPIRoute } from "chanfana";
 
-export class GetNoPitsScouter extends OpenAPIRoute {
+export class GetNoPitsData extends OpenAPIRoute {
   schema = generateSchema({
     reqHeader: ReqHeader,
     resBody: ListOfTeams

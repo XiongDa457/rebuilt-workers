@@ -3,31 +3,29 @@ import { Hono } from "hono";
 import { NexusWebhook } from "./endpoints/nexusWebhook";
 import { GetToken } from "./endpoints/getToken";
 import { GetSchedule } from "./endpoints/getSchedule";
-import { GetNotSchedule } from "./endpoints/getNotScheduled";
+import { GetNotScheduled } from "./endpoints/getNotScheduled";
 import { AddPitsData } from "./endpoints/addPitsData";
-import { GetNoPitsScouter } from "./endpoints/getNoPitsScouter";
+import { GetNoPitsData } from "./endpoints/getNoPitsData";
 import { AddMatchData } from "./endpoints/addMatchData";
 import { AddScouter } from "./endpoints/admin/addScouter";
 
-// Start a Hono app
+const admin = new Hono<{ Bindings: Env }>();
+const adminRoute = fromHono(admin)
+  .post("/add-scouter", AddScouter)
+
 const app = new Hono<{ Bindings: Env }>();
+fromHono(app, { docs_url: "/" })
+  .post("/get-token", GetToken)
+  .post("/nexus-webhook", NexusWebhook)
 
-// Setup OpenAPI registry
-const openapi = fromHono(app, {
-  docs_url: "/",
-});
+  .post("/get-schedule", GetSchedule)
+  .post("/get-not-schedule", GetNotScheduled)
+  .post("/get-no-pits-data", GetNoPitsData)
 
-openapi.post("/nexus-webhook", NexusWebhook);
-openapi.post("/get-token", GetToken);
+  .post("/add-match-data", AddMatchData)
+  .post("/add-pits-data", AddPitsData)
 
-openapi.post("/get-schedule", GetSchedule);
-openapi.post("/get-not-schedule", GetNotSchedule);
-openapi.post("/get-no-pits-scouter", GetNoPitsScouter);
-
-openapi.post("/add-match-data", AddMatchData);
-openapi.post("/add-pits-data", AddPitsData);
-
-openapi.post("/admin/add-scouter", AddScouter);
+  .post("/admin", adminRoute)
 
 // Export the Hono app
 export default app;

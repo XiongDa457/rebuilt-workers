@@ -1,17 +1,12 @@
 import { AppContext, PitsData, TimedReqHeader } from "@/types/api";
 import { generateSchema, verifySession } from "@/utils/api";
-import { checkItem, prepUpdate } from "@/utils/db";
+import { getItem, prepUpdate } from "@/utils/db";
 import { InputValidationException, OpenAPIRoute } from "chanfana";
 
 export class AddPitsData extends OpenAPIRoute {
   schema = generateSchema({
     reqHeader: TimedReqHeader,
     reqBody: PitsData,
-    extraResponses: {
-      "401": {
-        description: "Invalid team number"
-      }
-    }
   });
 
   async handle(con: AppContext) {
@@ -19,12 +14,12 @@ export class AddPitsData extends OpenAPIRoute {
     const studentNumber = await verifySession(data.headers.token);
 
     const pits = data.body;
-    if (!await checkItem("Teams", {
-      TeamNumber: pits.team,
-      ScoutedBy: studentNumber
-    })) throw new InputValidationException("You shouldn't scout this team");
+    const verify = await getItem("Teams", { TeamNumber: pits.team });
+    if (!verify) throw new InputValidationException("This team does not exist");
+    if (verify.ScoutedBy) throw new InputValidationException("Data exists for this team");
 
     await prepUpdate("Teams", {
+      ScoutedBy: studentNumber,
       TeamNumber: pits.team,
       PitsData: JSON.stringify(pits),
       PitsDataTime: data.headers.timeStamp,

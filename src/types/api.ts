@@ -84,7 +84,7 @@ export const MatchData = z.object({
   brokenReason: z.string().optional(),
 
   comments: z.string(),
-});
+}).openapi("MatchData");
 
 export const PitsData = z.object({
   team: PositiveInt,
@@ -94,7 +94,7 @@ export const PitsData = z.object({
   shooterType: z.string(),
   weight: PositiveInt.optional(),
   comments: z.string(),
-});
+}).openapi("PitsData");
 
 export const LoginData = z.object({
   studentNumber: PositiveInt,
@@ -111,10 +111,10 @@ export const ScoutingSchedule = z.array(z.object({
   matchID: MatchID,
   teamNumber: PositiveInt,
   alliance: Alliance,
-}));
+})).openapi("ScoutingSchedule");
 export type ScoutingSchedule = z.infer<typeof ScoutingSchedule>;
 
-export const ListOfTeams = z.array(PositiveInt);
+export const ListOfTeams = z.array(PositiveInt).openapi("ListOfTeams");
 export type ListOfTeams = z.infer<typeof ListOfTeams>;
 
 export const ReqHeader = z.object({
