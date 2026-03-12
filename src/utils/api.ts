@@ -68,10 +68,13 @@ export function generateSchema<ReqH extends AnyZodObject, ReqB extends ZodType, 
         ...(schemaGen.resBody !== undefined ? contentJson(schemaGen.resBody) : {}),
       },
       "400": {
-        description: "Invalid request"
+        description: "Invalid request format"
       },
       "401": {
-        description: "Invalid or expired token"
+        description: "Unauthorzied"
+      },
+      "422": {
+        description: "Invalid request content"
       },
       ...schemaGen.extraResponses,
     }

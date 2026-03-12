@@ -1,7 +1,7 @@
 import { AppContext, PitsData, TimedReqHeader } from "@/types/api";
 import { generateSchema, verifySession } from "@/utils/api";
 import { getItem, prepUpdate } from "@/utils/db";
-import { InputValidationException, OpenAPIRoute } from "chanfana";
+import { OpenAPIRoute, UnprocessableEntityException } from "chanfana";
 
 export class AddPitsData extends OpenAPIRoute {
   schema = generateSchema({
@@ -15,8 +15,8 @@ export class AddPitsData extends OpenAPIRoute {
 
     const pits = data.body;
     const verify = await getItem("Teams", { TeamNumber: pits.team });
-    if (!verify) throw new InputValidationException("This team does not exist");
-    if (verify.ScoutedBy) throw new InputValidationException("Data exists for this team");
+    if (!verify) throw new UnprocessableEntityException("This team does not exist in the competition");
+    if (verify.ScoutedBy) throw new UnprocessableEntityException("Data already exists for this team");
 
     await prepUpdate("Teams", {
       ScoutedBy: studentNumber,

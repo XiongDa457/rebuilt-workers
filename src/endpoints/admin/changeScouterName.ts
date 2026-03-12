@@ -3,17 +3,12 @@ import { AppContext, ReqHeader } from "@/types/api";
 import { veryfyAdminToken } from "@/utils/admin";
 import { generateSchema, hashString } from "@/utils/api";
 import { checkScouter, updateScouter } from "@/utils/db";
-import { InputValidationException, OpenAPIRoute } from "chanfana";
+import { OpenAPIRoute, UnprocessableEntityException } from "chanfana";
 
 export class AddScouter extends OpenAPIRoute {
   schema = generateSchema({
     reqHeader: ReqHeader,
-    reqBody: ScouterInfo,
-    extraResponses: {
-      "401": {
-        description: "Scouter already exists"
-      }
-    }
+    reqBody: ScouterInfo
   });
 
   async handle(con: AppContext) {
@@ -21,7 +16,7 @@ export class AddScouter extends OpenAPIRoute {
     veryfyAdminToken(data.headers.token)
 
     const scouter = data.body;
-    if (!await checkScouter(scouter.studentNumber)) throw new InputValidationException("Scouter does not exists");
+    if (!await checkScouter(scouter.studentNumber)) throw new UnprocessableEntityException("Scouter does not exists");
 
     await updateScouter({
       StudentNumber: scouter.studentNumber,
