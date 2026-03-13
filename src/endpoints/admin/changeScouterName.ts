@@ -5,7 +5,7 @@ import { generateSchema, hashString } from "@/utils/api";
 import { checkScouter, updateScouter } from "@/utils/db";
 import { OpenAPIRoute, UnprocessableEntityException } from "chanfana";
 
-export class AddScouter extends OpenAPIRoute {
+export class ChangeScouterName extends OpenAPIRoute {
   schema = generateSchema({
     reqHeader: ReqHeader,
     reqBody: ScouterInfo

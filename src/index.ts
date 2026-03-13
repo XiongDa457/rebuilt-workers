@@ -10,10 +10,16 @@ import { AddMatchData } from "./endpoints/addMatchData";
 import { TakeMatch } from "./endpoints/takeMatch";
 import { GiveUpMatch } from "./endpoints/giveUpMatch";
 import { AddScouter } from "./endpoints/admin/addScouter";
+import { ChangeScouterName } from "./endpoints/admin/changeScouterName";
+import { GetMatchData } from "./endpoints/admin/getMatchData";
+import { GetPitsData } from "./endpoints/admin/getPitsData";
 
 const admin = new Hono<{ Bindings: Env }>();
 const adminRoute = fromHono(admin)
   .post("/add-scouter", AddScouter)
+  .post("/change-scouter-name", ChangeScouterName)
+  .post("/get-match-data", GetMatchData)
+  .post("/get-pits-data", GetPitsData);
 
 const app = new Hono<{ Bindings: Env }>();
 fromHono(app, {
