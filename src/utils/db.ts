@@ -111,6 +111,21 @@ export async function getNoPitsScouter(): Promise<ListOfTeams> {
   return (await execSQL("SELECT TeamNumber FROM Teams WHERE ScoutedBy IS NULL", [])).results.map((r: any) => r.TeamNumber);
 }
 
+const getUnassignedStmt = `
+SELECT ttm.Alliance ttm.TeamIndex
+FROM TeamToMatch ttm
+LEFT JOIN ScouterToMatch stm
+  ON ttm.MatchID = stm.MatchID
+  AND ttm.Alliance = stm.Alliance
+  AND ttm.TeamIndex = stm.TeamIndex
+WHERE stm.StudentNumber IS NULL AND ttm.MatchID = ? and ttm.TeamNumber = ?`
+
+export async function getUnassigned(matchID: string, teamNumber: number): Promise<DBTeamToMatch> {
+  const res = (await execSQL(getUnassignedStmt, [matchID, teamNumber])).results;
+  if (res.length === 0) return undefined;
+  return res[0] as DBTeamToMatch;
+}
+
 export function prepInsert<T extends DBTables>(table: T, item: TableItem[T]) {
   const keys: string[] = [];
   const vals: any[] = [];

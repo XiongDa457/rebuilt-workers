@@ -1,4 +1,4 @@
-import { AppContext, ReqHeader, ScoutingSchedule } from "@/types/api";
+import { AppContext, ReqHeader, ResHeader, ScoutingSchedule } from "@/types/api";
 import { generateSchema, verifySession } from "@/utils/api";
 import { getSchedule } from "@/utils/db";
 import { OpenAPIRoute } from "chanfana";
@@ -7,6 +7,7 @@ import { env } from "cloudflare:workers";
 export class GetSchedule extends OpenAPIRoute {
   schema = generateSchema({
     reqHeader: ReqHeader,
+    resHeader: ResHeader,
     resBody: ScoutingSchedule
   });
 

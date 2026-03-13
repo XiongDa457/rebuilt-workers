@@ -21,7 +21,7 @@ export class NexusWebhook extends OpenAPIRoute {
 
     const eventStatus: EventStatus = await con.req.json();
     env.KV.put("LastUpdate", eventStatus.dataAsOfTime.toString());
-    env.KV.put("NowQueuing", eventStatus.nowQueuing);
+    if (eventStatus.nowQueuing) env.KV.put("NowQueuing", eventStatus.nowQueuing);
 
     const upd: D1PreparedStatement[] = []
 

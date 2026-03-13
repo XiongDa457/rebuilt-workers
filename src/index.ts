@@ -7,6 +7,8 @@ import { GetNotScheduled } from "./endpoints/getNotScheduled";
 import { AddPitsData } from "./endpoints/addPitsData";
 import { GetNoPitsData } from "./endpoints/getNoPitsData";
 import { AddMatchData } from "./endpoints/addMatchData";
+import { TakeMatch } from "./endpoints/takeMatch";
+import { GiveUpMatch } from "./endpoints/giveUpMatch";
 import { AddScouter } from "./endpoints/admin/addScouter";
 
 const admin = new Hono<{ Bindings: Env }>();
@@ -38,6 +40,9 @@ fromHono(app, {
 
   .post("/add-match-data", AddMatchData)
   .post("/add-pits-data", AddPitsData)
+
+  .post("/take-match", TakeMatch)
+  .post("/give-up-match", GiveUpMatch)
 
   .post("/admin", adminRoute)
 

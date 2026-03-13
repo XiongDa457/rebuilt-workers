@@ -1,5 +1,6 @@
 DROP INDEX IF EXISTS StudentNumberIdx;
 DROP INDEX IF EXISTS NameHashIdx;
+DROP INDEX IF EXISTS TeamNumberIdx;
 DROP INDEX IF EXISTS MatchTeamIdx;
 
 DROP TABLE IF EXISTS Announcements;
@@ -8,11 +9,11 @@ DROP TABLE IF EXISTS PartsRequests;
 DROP TABLE IF EXISTS TeamToMatch;
 DROP TABLE IF EXISTS ScouterToMatch;
 
+DROP TABLE IF EXISTS ScouterSessions;
+
 DROP TABLE IF EXISTS Teams;
 DROP TABLE IF EXISTS Scouters;
 DROP TABLE IF EXISTS Matches;
-
-DROP TABLE IF EXISTS ScouterSessions;
 
 CREATE TABLE IF NOT EXISTS Announcements (
   ID TEXT PRIMARY KEY,
@@ -31,7 +32,7 @@ CREATE TABLE IF NOT EXISTS Scouters (
   StudentNumber INTEGER PRIMARY KEY,
   NameHash BLOB NOT NULL
 );
-CREATE INDEX NameHashIdx
+CREATE INDEX IF NOT EXISTS NameHashIdx
 ON Scouters (NameHash);
 
 CREATE TABLE IF NOT EXISTS ScouterSessions (
@@ -40,7 +41,7 @@ CREATE TABLE IF NOT EXISTS ScouterSessions (
   ExpiresAt INTEGER NOT NULL,
   FOREIGN KEY (StudentNumber) REFERENCES Scouters(StudentNumber)
 );
-CREATE INDEX StudentNumberIdx
+CREATE INDEX  IF NOT EXISTS StudentNumberIdx
 ON ScouterSessions (StudentNumber);
 
 CREATE TABLE IF NOT EXISTS Teams (
@@ -68,6 +69,8 @@ CREATE TABLE IF NOT EXISTS TeamToMatch (
   FOREIGN KEY (TeamNumber) REFERENCES Teams(TeamNumber),
   FOREIGN KEY (MatchID) REFERENCES Matches(MatchID)
 );
+CREATE INDEX  IF NOT EXISTS TeamNumberIdx
+ON TeamToMatch (TeamNumber);
 
 CREATE TABLE IF NOT EXISTS ScouterToMatch (
   StudentNumber INTEGER NOT NULL,
@@ -78,6 +81,6 @@ CREATE TABLE IF NOT EXISTS ScouterToMatch (
   FOREIGN KEY (StudentNumber) REFERENCES Scouters(StudentNumber),
   FOREIGN KEY (MatchID) REFERENCES Matches(MatchID)
 );
-CREATE INDEX MatchTeamIdx
+CREATE INDEX IF NOT EXISTS MatchTeamIdx
 ON ScouterToMatch (MatchID, Alliance, TeamIndex);
 
