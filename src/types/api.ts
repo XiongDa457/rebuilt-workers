@@ -15,9 +15,6 @@ export type Alliance = z.infer<typeof Alliance>;
 const ClimbEvent = z.object({
   action: z.literal("climb"),
   time: PositiveInt,
-  climbAttempted: z.boolean(),
-  climbSuccess: z.boolean().optional(),
-  climbFailReason: z.string().optional(),
 });
 
 const MoveEvent = z.object({
@@ -40,6 +37,10 @@ const AutonData = z.object({
   startX: z.number(),
   startY: z.number(),
   route: Route,
+
+  climbAttempted: z.boolean(),
+  climbSuccess: z.boolean().optional(),
+  climbFailReason: z.string().optional(),
 });
 
 const TeleopData = z.object({
@@ -59,6 +60,10 @@ const TeleopData = z.object({
   defense: Rating,
 
   shootsWhileMoving: z.boolean(),
+
+  climbAttempted: z.boolean(),
+  climbLevel: ClimbLevel.optional(),
+  climbFailReason: z.string().optional(),
 });
 
 export const MatchData = z.object({
@@ -70,10 +75,6 @@ export const MatchData = z.object({
   teleop: TeleopData,
 
   canTrench: z.boolean(),
-
-  attemptedClimb: z.boolean(),
-  climbLevel: ClimbLevel.optional(),
-  climbFailReason: z.string().optional(),
 
   penaltyPoints: PositiveInt,
   penaltyCard: z.enum(["none", "yellow", "red"]),
