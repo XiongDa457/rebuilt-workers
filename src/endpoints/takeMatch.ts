@@ -1,6 +1,6 @@
 import { AppContext, MatchID, PositiveInt, ReqHeader } from "@/types/api";
 import { generateSchema, verifySession } from "@/utils/api";
-import { checkItem, getUnassigned, prepInsert } from "@/utils/db";
+import { checkScouterToMatch, getUnassigned, prepUpdate } from "@/utils/db";
 import { OpenAPIRoute, UnprocessableEntityException } from "chanfana";
 import z from "zod";
 
@@ -19,16 +19,14 @@ export class TakeMatch extends OpenAPIRoute {
 
     const body = data.body;
 
-    if (await checkItem("ScouterToMatch", {
-      StudentNumber: studentNumber,
-      MatchID: body.matchID,
-    })) throw new UnprocessableEntityException("You already have a team to scout in this match");
+    if (await checkScouterToMatch(studentNumber, body.matchID))
+      throw new UnprocessableEntityException("You already have a team to scout in this match");
 
     const verify = await getUnassigned(body.matchID, body.teamNumber);
     if (!verify) throw new UnprocessableEntityException("This match & team are already assigned");
 
-    await prepInsert("ScouterToMatch", {
-      StudentNumber: studentNumber,
+    await prepUpdate("TeamToMatch", {
+      Scouter: studentNumber,
       MatchID: body.matchID,
       Alliance: verify.Alliance,
       TeamIndex: verify.TeamIndex,

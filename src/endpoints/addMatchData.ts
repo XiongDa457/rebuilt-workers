@@ -1,6 +1,6 @@
 import { AppContext, MatchData, TimedReqHeader } from "@/types/api";
 import { generateSchema, verifySession } from "@/utils/api";
-import { getItem, isNull, prepUpdate } from "@/utils/db";
+import { getUnassigned, isNull, prepUpdate } from "@/utils/db";
 import { OpenAPIRoute, UnprocessableEntityException } from "chanfana";
 
 export class AddMatchData extends OpenAPIRoute {
@@ -14,12 +14,10 @@ export class AddMatchData extends OpenAPIRoute {
     const studentNumber = await verifySession(data.headers.token);
 
     const match = data.body;
-    const verify = await getItem("ScouterToMatch", { StudentNumber: studentNumber, MatchID: match.matchID });
-    if (verify === undefined) throw new UnprocessableEntityException("You are not set to scout this match");
-
-    const verify2 = await getItem("TeamToMatch", { MatchID: match.matchID, Alliance: match.alliance, TeamIndex: verify.TeamIndex });
-    if (verify2.TeamNumber !== match.team) throw new UnprocessableEntityException("Wrong team number");
-    if (!isNull(verify2.MatchData)) console.warn(`${studentNumber} is re-updating '${match.matchID}'`)
+    const verify = await getUnassigned(studentNumber, match.matchID);
+    if (isNull(verify)) throw new UnprocessableEntityException("You are not set to scout this match");
+    if (verify.TeamNumber !== match.team) throw new UnprocessableEntityException("Wrong team");
+    if (verify.MatchData) throw new UnprocessableEntityException("The data for this match is already filled");
 
     await prepUpdate("TeamToMatch", {
       MatchID: match.matchID,

@@ -16,10 +16,10 @@ export class AddPitsData extends OpenAPIRoute {
     const pits = data.body;
     const verify = await getItem("Teams", { TeamNumber: pits.team });
     if (!verify) throw new UnprocessableEntityException("This team does not exist in the competition");
-    if (verify.ScoutedBy) throw new UnprocessableEntityException("Data already exists for this team");
+    if (verify.Scouter) throw new UnprocessableEntityException("Data already exists for this team");
 
     await prepUpdate("Teams", {
-      ScoutedBy: studentNumber,
+      Scouter: studentNumber,
       TeamNumber: pits.team,
       PitsData: JSON.stringify(pits),
       PitsDataTime: data.headers.timeStamp,

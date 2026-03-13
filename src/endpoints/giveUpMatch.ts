@@ -1,6 +1,6 @@
 import { AppContext, MatchID, ReqHeader } from "@/types/api";
 import { generateSchema, verifySession } from "@/utils/api";
-import { checkItem, prepDelete } from "@/utils/db";
+import { checkScouterToMatch, removeScouterToMatch } from "@/utils/db";
 import { OpenAPIRoute, UnprocessableEntityException } from "chanfana";
 import z from "zod";
 
@@ -16,15 +16,11 @@ export class GiveUpMatch extends OpenAPIRoute {
     const data = await this.getValidatedData<typeof this.schema>();
     const studentNumber = await verifySession(data.headers.token);
 
-    if (!await checkItem("ScouterToMatch", {
-      StudentNumber: studentNumber,
-      MatchID: data.body.matchID,
-    })) throw new UnprocessableEntityException("You do not have thise match in your schedule");
+    const matchID = data.body.matchID;
+    if (!await checkScouterToMatch(studentNumber, matchID))
+      throw new UnprocessableEntityException("You do not have this match in your schedule");
 
-    await prepDelete("ScouterToMatch", {
-      StudentNumber: studentNumber,
-      MatchID: data.body.matchID,
-    }).run();
+    await removeScouterToMatch(studentNumber, matchID);
 
     return con.text("OK");
   }

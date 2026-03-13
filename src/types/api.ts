@@ -85,6 +85,13 @@ export const MatchData = z.object({
 
   comments: z.string(),
 }).openapi("MatchData");
+export type MatchData = z.infer<typeof MatchData>;
+
+export const MatchMetaData = z.object({
+  scouter: PositiveInt,
+  userScoutedTime: PositiveInt,
+  serverScoutedTime: PositiveInt
+})
 
 export const PitsData = z.object({
   team: PositiveInt,
@@ -95,6 +102,12 @@ export const PitsData = z.object({
   weight: PositiveInt.optional(),
   comments: z.string(),
 }).openapi("PitsData");
+export type PitsData = z.infer<typeof PitsData>;
+
+export const PitsMetaData = z.object({
+  scouter: PositiveInt,
+  scoutedTime: PositiveInt
+})
 
 export const LoginData = z.object({
   studentNumber: PositiveInt,

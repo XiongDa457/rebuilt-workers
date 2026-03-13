@@ -15,7 +15,7 @@ export type DBPartsRequest = {
 
 export type DBTeam = {
   TeamNumber: number,
-  ScoutedBy?: number | null,
+  Scouter?: number | null,
   PitsData?: string | null,
   PitsDataTime?: number | null,
 };
@@ -38,18 +38,12 @@ export type DBMatch = {
 
 export type DBTeamToMatch = {
   TeamNumber?: number | null,
+  Scouter?: number | null,
   MatchID: string | null,
   Alliance: Alliance,
   TeamIndex: number,
   MatchData?: string | null,
   UserScoutedTime?: number | null,
   ServerScoutedTime?: number | null,
-};
-
-export type DBScouterToMatch = {
-  StudentNumber: number,
-  MatchID: string,
-  Alliance?: Alliance,
-  TeamIndex?: number,
 };
 

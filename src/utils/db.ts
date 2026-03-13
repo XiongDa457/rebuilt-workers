@@ -1,12 +1,12 @@
-import { ListOfTeams, ScoutingSchedule } from "@/types/api";
-import { DBAnnoucenment, DBMatch, DBPartsRequest, DBScouter, DBTeam, DBScouterToMatch, DBTeamToMatch, DBScouterSession } from "@/types/db";
+import { ListOfTeams, MatchData, PitsData, ScoutingSchedule } from "@/types/api";
+import { DBAnnoucenment, DBMatch, DBPartsRequest, DBScouter, DBTeam, DBTeamToMatch, DBScouterSession } from "@/types/db";
 import { env } from "cloudflare:workers";
 
 export function isNull(item: any) {
   return item === undefined || item === null;
 }
 
-export type DBTables = "Announcements" | "PartsRequests" | "Teams" | "Scouters" | "ScouterSessions" | "Matches" | "TeamToMatch" | "ScouterToMatch";
+export type DBTables = "Announcements" | "PartsRequests" | "Teams" | "Scouters" | "ScouterSessions" | "Matches" | "TeamToMatch";
 
 const tableQueryKeys = {
   Announcements: ["ID"],
@@ -16,7 +16,6 @@ const tableQueryKeys = {
   Scouters: ["StudentNumber", "NameHash"],
   ScouterSessions: ["StudentNumber", "TokenHash"],
   TeamToMatch: ["MatchID", "Alliance", "TeamIndex"],
-  ScouterToMatch: ["StudentNumber", "MatchID"],
 }
 
 type TableItem = {
@@ -27,7 +26,6 @@ type TableItem = {
   Scouters: DBScouter,
   ScouterSessions: DBScouterSession,
   TeamToMatch: DBTeamToMatch,
-  ScouterToMatch: DBScouterToMatch,
 }
 
 function prepareSQL(sqlQuery: string) {
@@ -57,8 +55,13 @@ export async function checkItem<T extends DBTables>(table: T, item: TableItem[T]
   const res = await execSQL(`SELECT 1 FROM ${table} ${stmt} LIMIT 1`, vals);
   return res.results.length > 0;
 }
+
 export async function checkScouter(studentNumber: number) {
   return (await execSQL("SELECT 1 FROM Scouters WHERE StudentNumber = ?", [studentNumber])).results.length > 0;
+}
+
+export async function checkScouterToMatch(scouter: number, matchID: string) {
+  return (await execSQL("SELECT 1 FROM TeamToMatch WHERE  = ?", [scouter, matchID])).results.length > 0;
 }
 
 export async function getItem<T extends DBTables>(table: T, item: TableItem[T]): Promise<TableItem[T]> {
@@ -78,13 +81,9 @@ export async function getAll<T extends DBTables>(table: T, item: TableItem[T]): 
 const getScheduleStmt = `
 SELECT ttm.MatchID, ttm.Alliance, ttm.TeamNumber, m.Times
 FROM TeamToMatch ttm
-LEFT JOIN ScouterToMatch stm
-  ON ttm.MatchID = stm.MatchID
-  AND ttm.Alliance = stm.Alliance
-  AND ttm.TeamIndex = stm.TeamIndex
 LEFT JOIN Matches m
   ON ttm.MatchID = m.MatchID
-WHERE stm.StudentNumber`
+WHERE ttm.StudentNumber`
 
 function toSchedule(res: D1Result) {
   return res.results.map((r: any) => {
@@ -108,19 +107,24 @@ export async function getNotScheduled(): Promise<ScoutingSchedule> {
 }
 
 export async function getNoPitsScouter(): Promise<ListOfTeams> {
-  return (await execSQL("SELECT TeamNumber FROM Teams WHERE ScoutedBy IS NULL", [])).results.map((r: any) => r.TeamNumber);
+  return (await execSQL("SELECT TeamNumber FROM Teams WHERE Scouter IS NULL", [])).results.map((r: any) => r.TeamNumber);
+}
+
+export async function getAllMatchData(): Promise<MatchData[]> {
+  const res = await execSQL("SELECT MatchData FROM TeamToMatch WHERE MatchData IS NOT NULL", []);
+  return res.results.map((val: any) => JSON.parse(val.MatchData));
+}
+
+export async function getAllPitsData(): Promise<PitsData[]> {
+  const res = await execSQL("SELECT PitsData FROM Teams WHERE PitsData IS NOT NULL", []);
+  return res.results.map((val: any) => JSON.parse(val.PitsData));
 }
 
 const getUnassignedStmt = `
-SELECT ttm.Alliance ttm.TeamIndex
+SELECT *
 FROM TeamToMatch ttm
-LEFT JOIN ScouterToMatch stm
-  ON ttm.MatchID = stm.MatchID
-  AND ttm.Alliance = stm.Alliance
-  AND ttm.TeamIndex = stm.TeamIndex
-WHERE stm.StudentNumber IS NULL AND ttm.MatchID = ? and ttm.TeamNumber = ?`
-
-export async function getUnassigned(matchID: string, teamNumber: number): Promise<DBTeamToMatch> {
+WHERE ttm.StudentNumber IS NULL AND ttm.MatchID = ? and ttm.TeamNumber = ?`
+export async function getUnassigned(teamNumber: number, matchID: string): Promise<DBTeamToMatch> {
   const res = (await execSQL(getUnassignedStmt, [matchID, teamNumber])).results;
   if (res.length === 0) return undefined;
   return res[0] as DBTeamToMatch;
@@ -151,6 +155,10 @@ export function prepUpdate<T extends DBTables>(table: T, item: TableItem[T]) {
   }
   const [stmt, vals] = where(table, item);
   return prepareSQL(`UPDATE ${table} SET ${upd.join(", ")} ${stmt};`).bind(...updVals, ...vals);
+}
+
+export async function removeScouterToMatch(scouter: number, matchID: string) {
+  await execSQL("UPDATE TeamToMatch SET Scouter = NULL WHERE scouter = ? AND matchID = ?", [scouter, matchID]);
 }
 
 export async function updateScouter(scouter: DBScouter) {
