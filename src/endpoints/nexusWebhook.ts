@@ -63,6 +63,7 @@ export class NexusWebhook extends OpenAPIRoute {
         }));
       }
       for (const match of matches) {
+        if (match.label[1] === 'l') continue; // Playoff match
         if (await checkItem("Matches", { MatchID: match.label })) {
           upd.push(prepUpdate("Matches", {
             MatchID: match.label,

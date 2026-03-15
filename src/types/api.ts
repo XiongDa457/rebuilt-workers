@@ -8,7 +8,7 @@ const ClimbLevel = z.enum(["L1", "L2", "L3", "failed"]);
 const Rating = z.number().int().min(1).max(5).optional();
 export const PositiveInt = z.number().int().nonnegative();
 
-export const MatchID = z.string().regex(/(Practice|Qualifier) [0-9]*( Replay)?/);
+export const MatchID = z.string().regex(/(Practice|Qualifier|Playoff) [0-9]*( Replay)?/);
 const Alliance = z.enum(["red", "blue"]);
 export type Alliance = z.infer<typeof Alliance>;
 
