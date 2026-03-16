@@ -5,7 +5,7 @@ export type AppContext = Context<{ Bindings: Env }>;
 
 const ClimbLevel = z.enum(["L1", "L2", "L3", "failed"]);
 
-const Rating = z.number().int().min(1).max(5).optional();
+const Rating = z.number().int().min(1).max(5);
 export const PositiveInt = z.number().int().nonnegative();
 
 export const MatchID = z.string().regex(/(Practice|Qualifier|Playoff) [0-9]*( Replay)?/);
@@ -50,14 +50,14 @@ const TeleopData = z.object({
   movementSpeed: Rating,
   driverSkill: Rating,
 
-  cycling: Rating,
+  cycling: Rating.optional(),
 
-  scoringSpeed: Rating,
-  scoringAccuracy: Rating,
+  scoringSpeed: Rating.optional(),
+  scoringAccuracy: Rating.optional(),
 
-  feeding: Rating,
+  feeding: Rating.optional(),
 
-  defense: Rating,
+  defense: Rating.optional(),
 
   shootsWhileMoving: z.boolean(),
 
