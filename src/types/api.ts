@@ -24,24 +24,24 @@ const MoveEvent = z.object({
   posY: z.number(),
 });
 
-const Route = z.array(z.xor([
+const AutonRoute = z.array(z.xor([
   z.object({
     action: z.enum(["shoot", "shoot-stop", "intake", "intake-stop"]),
     time: PositiveInt,
   }), ClimbEvent, MoveEvent
-]));
+]).openapi("AutonEvent")).openapi("AutonRoute");
 
 const AutonData = z.object({
   precisionLevel: Rating,
 
   startX: z.number(),
   startY: z.number(),
-  route: Route,
+  route: AutonRoute,
 
   climbAttempted: z.boolean(),
   climbSuccess: z.boolean().optional(),
   climbFailReason: z.string().optional(),
-});
+}).openapi("AutonData");
 
 const TeleopData = z.object({
   roles: z.array(z.enum(["cycling", "scoring", "feeding", "defense", "immobile", "other"])),
@@ -64,7 +64,7 @@ const TeleopData = z.object({
   climbAttempted: z.boolean(),
   climbLevel: ClimbLevel.optional(),
   climbFailReason: z.string().optional(),
-});
+}).openapi("TeleopData");
 
 export const MatchData = z.object({
   matchID: MatchID,
@@ -92,7 +92,7 @@ export const MatchMetaData = z.object({
   scouter: PositiveInt,
   userScoutedTime: PositiveInt,
   serverScoutedTime: PositiveInt
-})
+}).openapi("MatchMetaData");
 
 export const PitsData = z.object({
   team: PositiveInt,
@@ -108,12 +108,12 @@ export type PitsData = z.infer<typeof PitsData>;
 export const PitsMetaData = z.object({
   scouter: PositiveInt,
   scoutedTime: PositiveInt
-})
+}).openapi("PitsMetaData")
 
 export const LoginData = z.object({
   studentNumber: PositiveInt,
   name: z.string(),
-});
+}).openapi("LoginData");
 
 export const ScoutingSchedule = z.array(z.object({
   times: z.object({
@@ -125,7 +125,7 @@ export const ScoutingSchedule = z.array(z.object({
   matchID: MatchID,
   teamNumber: PositiveInt,
   alliance: Alliance,
-})).openapi("ScoutingSchedule");
+}).openapi("MatchSchedule")).openapi("ScoutingSchedule");
 export type ScoutingSchedule = z.infer<typeof ScoutingSchedule>;
 
 export const ListOfTeams = z.array(PositiveInt).openapi("ListOfTeams");
