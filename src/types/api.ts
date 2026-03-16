@@ -44,7 +44,14 @@ const AutonData = z.object({
 }).openapi("AutonData");
 
 const TeleopData = z.object({
-  roles: z.array(z.enum(["cycling", "scoring", "feeding", "defense", "immobile", "other"])),
+  roles: z.object({
+    cycling: z.boolean(),
+    scoring: z.boolean(),
+    feeding: z.boolean(),
+    defense: z.boolean(),
+    immobile: z.boolean(),
+    other: z.boolean(),
+  }).openapi("BotRoles"),
   rolesOther: z.string().optional(),
 
   movementSpeed: Rating,
