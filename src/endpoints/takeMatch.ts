@@ -22,7 +22,7 @@ export class TakeMatch extends OpenAPIRoute {
     if (await checkScouterToMatch(studentNumber, body.matchID))
       throw new UnprocessableEntityException("You already have a team to scout in this match");
 
-    const verify = await getUnassigned(body.matchID, body.teamNumber);
+    const verify = await getUnassigned(body.teamNumber, body.matchID);
     if (!verify) throw new UnprocessableEntityException("This match & team are already assigned");
 
     await prepUpdate("TeamToMatch", {

@@ -83,27 +83,33 @@ SELECT ttm.MatchID, ttm.Alliance, ttm.TeamNumber, m.Times
 FROM TeamToMatch ttm
 LEFT JOIN Matches m
   ON ttm.MatchID = m.MatchID
-WHERE ttm.StudentNumber`
-
-function toSchedule(res: D1Result) {
-  return res.results.map((r: any) => {
+WHERE ttm.StudentNumber = ?`
+export async function getSchedule(studentNumber: number): Promise<ScoutingSchedule> {
+  const res = await execSQL(getScheduleStmt, [studentNumber]);
+  return res.results.map((r: any): ScoutingSchedule[number] => {
     return {
       times: JSON.parse(r.Times),
       matchID: r.MatchID,
       teamNumber: r.TeamNumber,
-      alliance: r.Alliance
+      alliance: r.Alliance,
+      hasData: !isNull(r.UserScoutedTime),
     };
   });
 }
 
-export async function getSchedule(studentNumber: number): Promise<ScoutingSchedule> {
-  const res = await execSQL(`${getScheduleStmt} = ?`, [studentNumber]);
-  return toSchedule(res);
-}
-
+const getNotScheduledStmt = `
+SELECT MatchID, Alliance, TeamNumber
+FROM TeamToMatch
+WHERE StudentNumber IS NULL AND TeamNumber IS NOT NULL`
 export async function getNotScheduled(): Promise<ScoutingSchedule> {
-  const res = await execSQL(`${getScheduleStmt} IS NULL AND ttm.TeamNumber IS NOT NULL`, []);
-  return toSchedule(res);
+  const res = await execSQL(getNotScheduledStmt, []);
+  return res.results.map((r: any): ScoutingSchedule[number] => {
+    return {
+      matchID: r.MatchID,
+      teamNumber: r.TeamNumber,
+      alliance: r.Alliance,
+    };
+  });
 }
 
 export async function getNoPitsScouter(): Promise<ListOfTeams> {

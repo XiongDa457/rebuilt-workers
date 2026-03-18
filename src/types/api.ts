@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export type AppContext = Context<{ Bindings: Env }>;
 
-const ClimbLevel = z.enum(["L1", "L2", "L3", "failed"]);
+const ClimbLevel = z.enum(["L1", "L2", "L3", "failed"]).openapi("ClimbLevel");
 
 const Rating = z.number().int().min(1).max(5);
 export const PositiveInt = z.number().int().nonnegative();
@@ -132,6 +132,7 @@ export const ScoutingSchedule = z.array(z.object({
   matchID: MatchID,
   teamNumber: PositiveInt,
   alliance: Alliance,
+  hasData: z.boolean().optional(),
 }).openapi("MatchSchedule")).openapi("ScoutingSchedule");
 export type ScoutingSchedule = z.infer<typeof ScoutingSchedule>;
 
