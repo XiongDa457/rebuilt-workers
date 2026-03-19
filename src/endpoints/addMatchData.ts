@@ -19,11 +19,40 @@ export class AddMatchData extends OpenAPIRoute {
     if (verify.TeamNumber !== match.team) throw new UnprocessableEntityException("Wrong team");
     if (verify.MatchData) throw new UnprocessableEntityException("The data for this match is already filled");
 
+    const { auton, teleop, beachedReason, brokenReason, ...matchRest } = match;
+    const { climbSuccess, climbFailReason, ...autonRest } = auton;
+    const { rolesOther, cycling, scoringSpeed, scoringAccuracy, feeding, defense, climbLevel, ...teleopRest } = teleop;
+    const roles = teleop.roles;
+
+    const pruned: MatchData = {
+      auton: {
+        ...autonRest
+      },
+      teleop: {
+        ...teleopRest
+      },
+      ...matchRest
+    }
+    if (match.beached) pruned.beachedReason = beachedReason;
+    if (match.botBroke) pruned.brokenReason = brokenReason;
+    if (auton.climbAttempted) {
+      pruned.auton.climbSuccess = climbSuccess;
+      if (!climbSuccess) pruned.auton.climbFailReason = climbFailReason;
+    }
+    if (roles.other) pruned.teleop.rolesOther = rolesOther;
+    if (roles.cycling) pruned.teleop.cycling = cycling;
+    if (roles.scoring) {
+      pruned.teleop.scoringSpeed = scoringSpeed;
+      pruned.teleop.scoringAccuracy = scoringAccuracy;
+    }
+    if (roles.feeding) pruned.teleop.feeding = feeding;
+    if (roles.defense) pruned.teleop.defense = defense;
+
     await prepUpdate("TeamToMatch", {
       MatchID: match.matchID,
       Alliance: match.alliance,
       TeamIndex: verify.TeamIndex,
-      MatchData: JSON.stringify(match),
+      MatchData: JSON.stringify(pruned),
       ServerScoutedTime: Date.now(),
       UserScoutedTime: data.headers.timeStamp,
     }).run();
