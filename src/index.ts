@@ -14,13 +14,6 @@ import { ChangeScouterName } from "./endpoints/admin/changeScouterName";
 import { GetMatchData } from "./endpoints/admin/getMatchData";
 import { GetPitsData } from "./endpoints/admin/getPitsData";
 
-const admin = new Hono<{ Bindings: Env }>();
-const adminRoute = fromHono(admin)
-  .post("/add-scouter", AddScouter)
-  .post("/change-scouter-name", ChangeScouterName)
-  .post("/get-match-data", GetMatchData)
-  .post("/get-pits-data", GetPitsData);
-
 const app = new Hono<{ Bindings: Env }>();
 fromHono(app, {
   docs_url: "/",
@@ -50,7 +43,10 @@ fromHono(app, {
   .post("/take-match", TakeMatch)
   .post("/give-up-match", GiveUpMatch)
 
-  .post("/admin", adminRoute)
+  .post("/admin/add-scouter", AddScouter)
+  .post("/admin/change-scouter-name", ChangeScouterName)
+  .post("/admin/get-match-data", GetMatchData)
+  .post("/admin/get-pits-data", GetPitsData);
 
 // Export the Hono app
 export default app;
