@@ -87,8 +87,14 @@ WHERE ttm.Scouter = ?`
 export async function getSchedule(studentNumber: number): Promise<ScoutingSchedule> {
   const res = await execSQL(getScheduleStmt, [studentNumber]);
   return res.results.map((r: any): ScoutingSchedule[number] => {
+    const times = JSON.parse(r.Times);
     return {
-      times: JSON.parse(r.Times),
+      times: {
+        queueTime: times.estimatedQueueTime,
+        onDeckTime: times.estimatedOnDeckTime,
+        onFieldTime: times.estimatedOnFieldTime,
+        startTime: times.estimatedStartTime
+      },
       matchID: r.MatchID,
       teamNumber: r.TeamNumber,
       alliance: r.Alliance,
