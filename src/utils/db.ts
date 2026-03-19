@@ -83,7 +83,7 @@ SELECT ttm.MatchID, ttm.Alliance, ttm.TeamNumber, m.Times
 FROM TeamToMatch ttm
 LEFT JOIN Matches m
   ON ttm.MatchID = m.MatchID
-WHERE ttm.StudentNumber = ?`
+WHERE ttm.Scouter = ?`
 export async function getSchedule(studentNumber: number): Promise<ScoutingSchedule> {
   const res = await execSQL(getScheduleStmt, [studentNumber]);
   return res.results.map((r: any): ScoutingSchedule[number] => {
@@ -100,7 +100,7 @@ export async function getSchedule(studentNumber: number): Promise<ScoutingSchedu
 const getNotScheduledStmt = `
 SELECT MatchID, Alliance, TeamNumber
 FROM TeamToMatch
-WHERE StudentNumber IS NULL AND TeamNumber IS NOT NULL`
+WHERE Scouter IS NULL AND TeamNumber IS NOT NULL`
 export async function getNotScheduled(): Promise<ScoutingSchedule> {
   const res = await execSQL(getNotScheduledStmt, []);
   return res.results.map((r: any): ScoutingSchedule[number] => {
@@ -129,7 +129,7 @@ export async function getAllPitsData(): Promise<PitsData[]> {
 const getUnassignedStmt = `
 SELECT *
 FROM TeamToMatch ttm
-WHERE ttm.StudentNumber IS NULL AND ttm.MatchID = ? and ttm.TeamNumber = ?`
+WHERE ttm.Scouter IS NULL AND ttm.MatchID = ? and ttm.TeamNumber = ?`
 export async function getUnassigned(teamNumber: number, matchID: string): Promise<DBTeamToMatch> {
   const res = (await execSQL(getUnassignedStmt, [matchID, teamNumber])).results;
   if (res.length === 0) return undefined;
@@ -168,7 +168,7 @@ export async function removeScouterToMatch(scouter: number, matchID: string) {
 }
 
 export async function updateScouter(scouter: DBScouter) {
-  await execSQL("UPDATE Scouters SET NameHahs = ? WHERE StudentNumber = ?", [scouter.NameHash, scouter.StudentNumber]);
+  await execSQL("UPDATE Scouters SET NameHash = ? WHERE StudentNumber = ?", [scouter.NameHash, scouter.StudentNumber]);
 }
 
 export function prepDelete<T extends DBTables>(table: T, item: TableItem[T]) {
