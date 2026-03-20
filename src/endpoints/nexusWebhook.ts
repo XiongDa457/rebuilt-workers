@@ -20,7 +20,7 @@ export class NexusWebhook extends OpenAPIRoute {
     if (nexusToken !== env.NEXUS_TOKEN) return con.text("Incorrect Nexus-Token.");
 
     const eventStatus: EventStatus = await con.req.json();
-    env.KV.put("LastUpdate", eventStatus.dataAsOfTime.toString());
+    if (eventStatus.dataAsOfTime) env.KV.put("LastUpdate", eventStatus.dataAsOfTime.toString());
     if (eventStatus.nowQueuing) env.KV.put("NowQueuing", eventStatus.nowQueuing);
 
     const upd: D1PreparedStatement[] = []
