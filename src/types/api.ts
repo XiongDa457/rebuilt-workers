@@ -136,7 +136,11 @@ export const ScoutingSchedule = z.array(z.object({
 }).openapi("MatchSchedule")).openapi("ScoutingSchedule");
 export type ScoutingSchedule = z.infer<typeof ScoutingSchedule>;
 
-export const ListOfTeams = z.array(PositiveInt).openapi("ListOfTeams");
+export const ListOfTeams = z.array(z.object({
+  team: PositiveInt,
+  hasData: z.boolean(),
+  byYou: z.boolean().optional(),
+})).openapi("ListOfTeams");
 export type ListOfTeams = z.infer<typeof ListOfTeams>;
 
 export const ReqHeader = z.object({

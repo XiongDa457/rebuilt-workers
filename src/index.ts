@@ -5,7 +5,7 @@ import { GetToken } from "./endpoints/getToken";
 import { GetSchedule } from "./endpoints/getSchedule";
 import { GetNotScheduled } from "./endpoints/getNotScheduled";
 import { AddPitsData } from "./endpoints/addPitsData";
-import { GetNoPitsData } from "./endpoints/getNoPitsData";
+import { GetListOfTeams } from "./endpoints/getListOfTeams";
 import { AddMatchData } from "./endpoints/addMatchData";
 import { TakeMatch } from "./endpoints/takeMatch";
 import { GiveUpMatch } from "./endpoints/giveUpMatch";
@@ -35,7 +35,7 @@ fromHono(app, {
 
   .post("/get-schedule", GetSchedule)
   .post("/get-not-schedule", GetNotScheduled)
-  .post("/get-no-pits-data", GetNoPitsData)
+  .post("/get-list-of-teams", GetListOfTeams)
 
   .post("/add-match-data", AddMatchData)
   .post("/add-pits-data", AddPitsData)

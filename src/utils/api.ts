@@ -1,5 +1,5 @@
 import { ZodType } from "zod";
-import { getItem, prepDelete } from "./db";
+import { getItem, prepDelete, prepUpdate } from "./db";
 import { AnyZodObject, UnauthorizedException } from "chanfana";
 
 export function generateToken() {
@@ -18,15 +18,19 @@ export async function hashString(str: string): Promise<ArrayBuffer> {
   return crypto.subtle.digest("SHA-256", data);
 }
 
+const twoDays = 1000 * 60 * 60 * 24 * 2;
+const threeDays = 1000 * 60 * 60 * 24 * 3;
 export async function verifySession(token: string): Promise<number> {
   const tokenHash = await hashString(token);
   const session = await getItem("ScouterSessions", { TokenHash: tokenHash });
   if (!session) throw new UnauthorizedException("Invalid token");
 
-  // if (session.ExpiresAt < Date.now()) {
-  //   await prepDelete("ScouterSessions", { TokenHash: tokenHash }).run();
-  //   throw new UnauthorizedException("Expired Token");
-  // }
+  if (session.ExpiresAt < Date.now()) {
+    await prepDelete("ScouterSessions", { TokenHash: tokenHash }).run();
+    throw new UnauthorizedException("Expired Token");
+  }
+  if (session.ExpiresAt - Date.now() < twoDays)
+    await prepUpdate("ScouterSessions", { TokenHash: tokenHash, ExpiresAt: Date.now() + threeDays }).run();
 
   return session.StudentNumber;
 }

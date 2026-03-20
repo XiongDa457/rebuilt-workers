@@ -118,8 +118,16 @@ export async function getNotScheduled(): Promise<ScoutingSchedule> {
   });
 }
 
-export async function getNoPitsScouter(): Promise<ListOfTeams> {
-  return (await execSQL("SELECT TeamNumber FROM Teams WHERE Scouter IS NULL", [])).results.map((r: any) => r.TeamNumber);
+export async function getListOfTeams(scouter: number): Promise<ListOfTeams> {
+  return (await execSQL("SELECT TeamNumber, Scouter FROM Teams", []))
+    .results.map((r: any) => {
+      const ret: ListOfTeams[number] = {
+        team: r.TeamNumber,
+        hasData: !isNull(r.Scouter),
+      }
+      if (ret.hasData) ret.byYou = scouter === r.Scouter;
+      return ret;
+    });
 }
 
 export async function getAllMatchData(): Promise<MatchData[]> {
