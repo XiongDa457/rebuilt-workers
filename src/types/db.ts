@@ -17,7 +17,7 @@ export type DBTeam = {
   TeamNumber: number,
   Scouter?: number | null,
   PitsData?: string | null,
-  PitsDataTime?: number | null,
+  Timestamp?: number | null,
 };
 
 export type DBScouter = {
@@ -43,7 +43,6 @@ export type DBTeamToMatch = {
   Alliance: Alliance,
   TeamIndex: number,
   MatchData?: string | null,
-  UserScoutedTime?: number | null,
-  ServerScoutedTime?: number | null,
+  Timestamp?: number | null,
 };
 

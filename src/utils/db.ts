@@ -79,7 +79,7 @@ export async function getAll<T extends DBTables>(table: T, item: TableItem[T]): 
 }
 
 const getScheduleStmt = `
-SELECT ttm.MatchID, ttm.Alliance, ttm.TeamNumber, m.Times
+SELECT ttm.MatchID, ttm.Alliance, ttm.TeamNumber, ttm.UserScoutedTime, m.Times
 FROM TeamToMatch ttm
 LEFT JOIN Matches m
   ON ttm.MatchID = m.MatchID

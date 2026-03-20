@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS Teams (
   TeamNumber INTEGER PRIMARY KEY,
   Scouter INTEGER,
   PitsData TEXT,
-  PitsDataTime INTEGER,
+  Timestamp INTEGER,
   FOREIGN KEY (Scouter) REFERENCES Scouters(StudentNumber)
 );
 
@@ -62,8 +62,7 @@ CREATE TABLE IF NOT EXISTS TeamToMatch (
   Alliance TEXT NOT NULL,
   TeamIndex INTEGER NOT NULL,
   MatchData TEXT,
-  UserScoutedTime INTEGER,
-  ServerScoutedTime INTEGER,
+  Timestamp INTEGER,
   PRIMARY KEY (MatchID, Alliance, TeamIndex),
   UNIQUE (Scouter, MatchId),
   FOREIGN KEY (TeamNumber) REFERENCES Teams(TeamNumber),

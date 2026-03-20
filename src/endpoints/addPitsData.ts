@@ -1,11 +1,11 @@
-import { AppContext, PitsData, TimedReqHeader } from "@/types/api";
+import { AppContext, PitsData, ReqHeader } from "@/types/api";
 import { generateSchema, verifySession } from "@/utils/api";
 import { getItem, prepUpdate } from "@/utils/db";
 import { OpenAPIRoute, UnprocessableEntityException } from "chanfana";
 
 export class AddPitsData extends OpenAPIRoute {
   schema = generateSchema({
-    reqHeader: TimedReqHeader,
+    reqHeader: ReqHeader,
     reqBody: PitsData,
   });
 
@@ -22,7 +22,7 @@ export class AddPitsData extends OpenAPIRoute {
       Scouter: studentNumber,
       TeamNumber: pits.team,
       PitsData: JSON.stringify(pits),
-      PitsDataTime: data.headers.timeStamp,
+      Timestamp: Date.now(),
     }).run()
     return con.text("");
   }

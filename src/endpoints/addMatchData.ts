@@ -1,11 +1,11 @@
-import { AppContext, MatchData, TimedReqHeader } from "@/types/api";
+import { AppContext, MatchData, ReqHeader } from "@/types/api";
 import { generateSchema, verifySession } from "@/utils/api";
 import { getAssigned, isNull, prepUpdate } from "@/utils/db";
 import { OpenAPIRoute, UnprocessableEntityException } from "chanfana";
 
 export class AddMatchData extends OpenAPIRoute {
   schema = generateSchema({
-    reqHeader: TimedReqHeader,
+    reqHeader: ReqHeader,
     reqBody: MatchData
   });
 
@@ -52,8 +52,7 @@ export class AddMatchData extends OpenAPIRoute {
       Alliance: match.alliance,
       TeamIndex: verify.TeamIndex,
       MatchData: JSON.stringify(pruned),
-      ServerScoutedTime: Date.now(),
-      UserScoutedTime: data.headers.timeStamp,
+      Timestamp: Date.now(),
     }).run();
 
     return con.text("OK");
