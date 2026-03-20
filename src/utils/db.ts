@@ -134,10 +134,20 @@ export async function getAllPitsData(): Promise<PitsData[]> {
 
 const getUnassignedStmt = `
 SELECT *
-FROM TeamToMatch ttm
-WHERE ttm.Scouter IS NULL AND ttm.MatchID = ? and ttm.TeamNumber = ?`
+FROM TeamToMatch
+WHERE Scouter IS NULL AND MatchID = ? and TeamNumber = ?`
 export async function getUnassigned(teamNumber: number, matchID: string): Promise<DBTeamToMatch> {
   const res = (await execSQL(getUnassignedStmt, [matchID, teamNumber])).results;
+  if (res.length === 0) return undefined;
+  return res[0] as DBTeamToMatch;
+}
+
+const getAssignedStmt = `
+SELECT *
+FROM TeamToMatch
+WHERE Scouter IS ? AND MatchID = ?`
+export async function getAssigned(scouter: number, matchID: string): Promise<DBTeamToMatch> {
+  const res = (await execSQL(getAssignedStmt, [scouter, matchID])).results;
   if (res.length === 0) return undefined;
   return res[0] as DBTeamToMatch;
 }
