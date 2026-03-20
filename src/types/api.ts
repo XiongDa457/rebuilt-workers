@@ -107,7 +107,7 @@ export const PitsData = z.object({
   trench: z.boolean(),
   hopperCapacity: PositiveInt,
   shooterType: z.string(),
-  weight: PositiveInt.optional(),
+  weight: z.number(),
   comments: z.string(),
 }).openapi("PitsData");
 export type PitsData = z.infer<typeof PitsData>;

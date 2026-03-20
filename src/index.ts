@@ -34,7 +34,7 @@ fromHono(app, {
   .post("/nexus-webhook", NexusWebhook)
 
   .post("/get-schedule", GetSchedule)
-  .post("/get-not-schedule", GetNotScheduled)
+  .post("/get-not-scheduled", GetNotScheduled)
   .post("/get-list-of-teams", GetListOfTeams)
 
   .post("/add-match-data", AddMatchData)
