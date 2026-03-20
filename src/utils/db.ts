@@ -79,7 +79,7 @@ export async function getAll<T extends DBTables>(table: T, item: TableItem[T]): 
 }
 
 const getScheduleStmt = `
-SELECT ttm.MatchID, ttm.Alliance, ttm.TeamNumber, ttm.UserScoutedTime, m.Times
+SELECT ttm.MatchID, ttm.Alliance, ttm.TeamNumber, ttm.Timestamp, m.Times
 FROM TeamToMatch ttm
 LEFT JOIN Matches m
   ON ttm.MatchID = m.MatchID
@@ -98,7 +98,7 @@ export async function getSchedule(studentNumber: number): Promise<ScoutingSchedu
       matchID: r.MatchID,
       teamNumber: r.TeamNumber,
       alliance: r.Alliance,
-      hasData: !isNull(r.UserScoutedTime),
+      hasData: !isNull(r.Timestamp),
     };
   });
 }
