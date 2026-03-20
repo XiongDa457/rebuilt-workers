@@ -14,12 +14,12 @@ export type Alliance = z.infer<typeof Alliance>;
 
 const ClimbEvent = z.object({
   action: z.literal("climb"),
-  time: PositiveInt,
+  time: z.number(),
 });
 
 const MoveEvent = z.object({
   action: z.literal("move"),
-  time: PositiveInt,
+  time: z.number(),
   posX: z.number(),
   posY: z.number(),
 });
@@ -27,7 +27,7 @@ const MoveEvent = z.object({
 const AutonRoute = z.array(z.discriminatedUnion("action", [
   z.object({
     action: z.enum(["shoot", "shoot-stop", "intake", "intake-stop"]),
-    time: PositiveInt,
+    time: z.number(),
   }), ClimbEvent, MoveEvent
 ]).openapi("AutonEvent")).openapi("AutonRoute");
 
