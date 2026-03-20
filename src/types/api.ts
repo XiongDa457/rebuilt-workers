@@ -24,7 +24,7 @@ const MoveEvent = z.object({
   posY: z.number(),
 });
 
-const AutonRoute = z.array(z.xor([
+const AutonRoute = z.array(z.union([
   z.object({
     action: z.enum(["shoot", "shoot-stop", "intake", "intake-stop"]),
     time: PositiveInt,
