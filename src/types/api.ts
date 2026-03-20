@@ -101,15 +101,28 @@ export const MatchMetaData = z.object({
   serverScoutedTime: PositiveInt
 }).openapi("MatchMetaData");
 
-export const PitsData = z.object({
+export const PitsData = z.intersection(z.object({
   team: PositiveInt,
-  autoDesc: z.string(),
   trench: z.boolean(),
+  canFeed: z.boolean(),
+  climbLevel: z.enum(["L1", "L2", "L3", "N/A"]),
+  autonDesc: z.string(),
   hopperCapacity: PositiveInt,
-  shooterType: z.string(),
   weight: z.number(),
   comments: z.string(),
-}).openapi("PitsData");
+}), z.discriminatedUnion("shooter", [
+  z.object({
+    shooter: z.literal("fixed"),
+    shooterQuant: z.enum(["single", "double", "multi"])
+  }),
+  z.object({
+    shooter: z.literal("turret"),
+    shooterQuant: z.enum(["single", "double"])
+  }),
+  z.object({
+    shooter: z.literal("drum")
+  })
+])).openapi("PitsData");
 export type PitsData = z.infer<typeof PitsData>;
 
 export const PitsMetaData = z.object({
