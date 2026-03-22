@@ -8,7 +8,7 @@ import z from "zod";
 export class GetPitsData extends OpenAPIRoute {
   schema = generateSchema({
     reqHeader: ReqHeader,
-    reqBody: z.array(PitsData)
+    resBody: z.array(PitsData)
   });
 
   async handle(con: AppContext) {

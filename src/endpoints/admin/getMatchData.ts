@@ -8,7 +8,7 @@ import z from "zod";
 export class GetMatchData extends OpenAPIRoute {
   schema = generateSchema({
     reqHeader: ReqHeader,
-    reqBody: z.array(MatchData)
+    resBody: z.array(MatchData)
   });
 
   async handle(con: AppContext) {
